@@ -1,0 +1,597 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hafıza Kart Oyunu</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+ body {
+        font-family: 'Poppins', sans-serif;
+        background: linear-gradient(135deg, #6366f1, #8b5cf6);
+        min-height: 100vh;
+    }
+    
+    .card {
+        perspective: 1000px;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+    }
+    
+    .card-inner {
+        position: relative;
+        width: 100%;
+        height: 100%;
+        transform-style: preserve-3d;
+        transition: transform 0.6s;
+    }
+    
+    .card.flipped .card-inner {
+        transform: rotateY(180deg);
+    }
+    
+    .card-front, .card-back {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        border-radius: 0.75rem;
+    }
+    
+    .card-front {
+        background: linear-gradient(45deg, #4f46e5, #7c3aed);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-back {
+        background-color: white;
+        transform: rotateY(180deg);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-icon {
+        font-size: 2rem;
+    }
+    
+    @keyframes pulse {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
+    }
+    
+    .pulse {
+        animation: pulse 1s infinite;
+    }
+    
+    .timer-bar {
+        transition: width 1s linear;
+    }
+    
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+    
+    .fade-in {
+        animation: fadeIn 0.5s ease-in;
+    }
+    
+    @keyframes slideIn {
+        from { transform: translateY(-20px); opacity: 0; }
+        to { transform: translateY(0); opacity: 1; }
+    }
+    
+    .slide-in {
+        animation: slideIn 0.5s ease-out;
+    }
+</style>
+    <div class="mb-6">
+        <label class="block text-gray-700 font-semibold mb-2">Kullanıcı Adı:</label>
+        <input type="text" id="username-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Kullanıcı adınızı girin">
+    </div>
+    
+    <div class="mb-6">
+        <label class="block text-gray-700 font-semibold mb-2">Kategori:</label>
+        <select id="category-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="animals">Hayvanlar</option>
+            <option value="fruits">Meyveler</option>
+            <option value="vehicles">Taşıtlar</option>
+        </select>
+    </div>
+    
+    <div class="mb-8">
+        <label class="block text-gray-700 font-semibold mb-2">Zorluk Seviyesi:</label>
+        <div class="flex justify-between gap-4">
+            <button class="difficulty-btn flex-1 py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition" data-difficulty="easy">Kolay</button>
+            <button class="difficulty-btn flex-1 py-2 px-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition" data-difficulty="medium">Orta</button>
+            <button class="difficulty-btn flex-1 py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition" data-difficulty="hard">Zor</button>
+        </div>
+    </div>
+    
+    <button id="start-game" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition pulse">Oyunu Başlat</button>
+    
+    <button id="show-scores" class="w-full mt-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">Skor Tablosu</button>
+</div>
+
+<!-- Oyun Alanı -->
+<div id="game-container" class="max-w-4xl mx-auto mt-6 hidden">
+    <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
+        <div class="flex flex-wrap justify-between items-center">
+            <div>
+                <h2 id="player-name" class="text-xl font-bold text-indigo-700">Oyuncu: </h2>
+                <p id="score-display" class="text-gray-700">Skor: 0</p>
+            </div>
+            <div class="text-center">
+                <p id="category-display" class="font-semibold text-indigo-600">Kategori: </p>
+                <p id="difficulty-display" class="text-sm text-gray-600">Zorluk: </p>
+            </div>
+            <div class="text-right">
+                <p id="time-display" class="text-xl font-bold text-indigo-700">Süre: 60</p>
+                <div class="w-32 h-2 bg-gray-200 rounded-full mt-1">
+                    <div id="timer-bar" class="h-full bg-indigo-600 rounded-full timer-bar" style="width: 100%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <div id="game-board" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4"></div>
+    
+    <div class="mt-6 text-center">
+        <button id="back-to-menu" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">Ana Menüye Dön</button>
+    </div>
+</div>
+
+<!-- Skor Tablosu -->
+<div id="scoreboard" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 mt-10 hidden slide-in">
+    <h2 class="text-2xl font-bold text-center text-indigo-700 mb-4">Skor Tablosu</h2>
+    
+    <div class="mb-4">
+        <select id="scoreboard-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            <option value="all">Tüm Skorlar</option>
+            <option value="animals">Hayvanlar</option>
+            <option value="fruits">Meyveler</option>
+            <option value="vehicles">Taşıtlar</option>
+        </select>
+    </div>
+    
+    <div class="overflow-y-auto max-h-64">
+        <table class="w-full">
+            <thead class="bg-indigo-100">
+                <tr>
+                    <th class="py-2 px-4 text-left">Kullanıcı</th>
+                    <th class="py-2 px-4 text-left">Kategori</th>
+                    <th class="py-2 px-4 text-left">Zorluk</th>
+                    <th class="py-2 px-4 text-right">Skor</th>
+                </tr>
+            </thead>
+            <tbody id="scores-table-body">
+                <!-- Skorlar buraya eklenecek -->
+            </tbody>
+        </table>
+    </div>
+    
+    <button id="back-from-scores" class="w-full mt-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">Ana Menüye Dön</button>
+</div>
+
+<!-- Oyun Sonu Modal -->
+<div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+    <div class="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 fade-in">
+        <h2 class="text-2xl font-bold text-center text-indigo-700 mb-2">Oyun Bitti!</h2>
+        <p id="final-score" class="text-xl text-center mb-4">Skorunuz: 0</p>
+        <p id="game-result" class="text-center mb-6">Tebrikler!</p>
+        
+        <div class="flex gap-4">
+            <button id="play-again" class="flex-1 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">Tekrar Oyna</button>
+            <button id="end-game" class="flex-1 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">Ana Menü</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Oyun verileri
+    const categories = {
+        animals: [
+            { name: "Kedi", icon: "🐱" }, { name: "Köpek", icon: "🐶" }, 
+            { name: "Fil", icon: "🐘" }, { name: "Aslan", icon: "🦁" },
+            { name: "Maymun", icon: "🐵" }, { name: "Zürafa", icon: "🦒" },
+            { name: "Tavşan", icon: "🐰" }, { name: "Ayı", icon: "🐻" },
+            { name: "Panda", icon: "🐼" }, { name: "Koala", icon: "🐨" },
+            { name: "Timsah", icon: "🐊" }, { name: "Balık", icon: "🐠" }
+        ],
+        fruits: [
+            { name: "Elma", icon: "🍎" }, { name: "Muz", icon: "🍌" },
+            { name: "Üzüm", icon: "🍇" }, { name: "Çilek", icon: "🍓" },
+            { name: "Karpuz", icon: "🍉" }, { name: "Ananas", icon: "🍍" },
+            { name: "Kiraz", icon: "🍒" }, { name: "Şeftali", icon: "🍑" },
+            { name: "Armut", icon: "🍐" }, { name: "Limon", icon: "🍋" },
+            { name: "Portakal", icon: "🍊" }, { name: "Hindistan Cevizi", icon: "🥥" }
+        ],
+        vehicles: [
+            { name: "Araba", icon: "🚗" }, { name: "Otobüs", icon: "🚌" },
+            { name: "Tren", icon: "🚂" }, { name: "Uçak", icon: "✈️" },
+            { name: "Gemi", icon: "🚢" }, { name: "Taksi", icon: "🚕" },
+            { name: "Ambulans", icon: "🚑" }, { name: "Polis Arabası", icon: "🚓" },
+            { name: "Bisiklet", icon: "🚲" }, { name: "Helikopter", icon: "🚁" },
+            { name: "Roket", icon: "🚀" }, { name: "Motosiklet", icon: "🏍️" }
+        ]
+    };
+    
+    const difficulties = {
+        easy: { pairs: 6, time: 60, timeBonus: 5 },
+        medium: { pairs: 8, time: 50, timeBonus: 3 },
+        hard: { pairs: 12, time: 40, timeBonus: 2 }
+    };
+    
+    // Oyun durumu
+    let gameState = {
+        username: "",
+        category: "animals",
+        difficulty: "easy",
+        score: 0,
+        timeLeft: 60,
+        cards: [],
+        flippedCards: [],
+        matchedPairs: 0,
+        totalPairs: 6,
+        timer: null,
+        isGameActive: false
+    };
+    
+    // Yerel depolama için skor yönetimi
+    const scoreManager = {
+        getScores: function() {
+            const scores = localStorage.getItem('memoryGameScores');
+            return scores ? JSON.parse(scores) : [];
+        },
+        
+        saveScore: function(score) {
+            const scores = this.getScores();
+            scores.push(score);
+            scores.sort((a, b) => b.score - a.score);
+            localStorage.setItem('memoryGameScores', JSON.stringify(scores));
+        },
+        
+        displayScores: function(filter = 'all') {
+            const scores = this.getScores();
+            const tableBody = document.getElementById('scores-table-body');
+            tableBody.innerHTML = '';
+            
+            const filteredScores = filter === 'all' ? 
+                scores : 
+                scores.filter(score => score.category === filter);
+            
+            filteredScores.forEach(score => {
+                const row = document.createElement('tr');
+                row.className = 'border-b border-gray-200';
+                
+                const difficultyText = {
+                    easy: 'Kolay',
+                    medium: 'Orta',
+                    hard: 'Zor'
+                };
+                
+                const categoryText = {
+                    animals: 'Hayvanlar',
+                    fruits: 'Meyveler',
+                    vehicles: 'Taşıtlar'
+                };
+                
+                row.innerHTML = `
+                    <td class="py-2 px-4">${score.username}</td>
+                    <td class="py-2 px-4">${categoryText[score.category]}</td>
+                    <td class="py-2 px-4">${difficultyText[score.difficulty]}</td>
+                    <td class="py-2 px-4 text-right font-semibold">${score.score}</td>
+                `;
+                
+                tableBody.appendChild(row);
+            });
+            
+            if (filteredScores.length === 0) {
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td colspan="4" class="py-4 text-center text-gray-500">Henüz skor kaydedilmemiş</td>
+                `;
+                tableBody.appendChild(row);
+            }
+        }
+    };
+    
+    // DOM elementleri
+    const mainMenu = document.getElementById('main-menu');
+    const gameContainer = document.getElementById('game-container');
+    const gameBoard = document.getElementById('game-board');
+    const scoreboard = document.getElementById('scoreboard');
+    const gameOverModal = document.getElementById('game-over-modal');
+    
+    // Oyun başlatma
+    document.getElementById('start-game').addEventListener('click', function() {
+        const username = document.getElementById('username-input').value.trim();
+        if (!username) {
+            alert('Lütfen bir kullanıcı adı girin!');
+            return;
+        }
+        
+        gameState.username = username;
+        gameState.category = document.getElementById('category-select').value;
+        
+        // Zorluk seviyesi seçilmediyse varsayılan olarak kolay
+        if (!gameState.difficulty) {
+            gameState.difficulty = 'easy';
+        }
+        
+        startGame();
+    });
+    
+    // Zorluk seviyesi seçimi
+    document.querySelectorAll('.difficulty-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.difficulty-btn').forEach(b => {
+                b.classList.remove('ring-4', 'ring-indigo-300');
+            });
+            this.classList.add('ring-4', 'ring-indigo-300');
+            gameState.difficulty = this.dataset.difficulty;
+        });
+    });
+    
+    // Skor tablosu gösterme
+    document.getElementById('show-scores').addEventListener('click', function() {
+        mainMenu.classList.add('hidden');
+        scoreboard.classList.remove('hidden');
+        scoreManager.displayScores();
+    });
+    
+    // Skor tablosundan ana menüye dönme
+    document.getElementById('back-from-scores').addEventListener('click', function() {
+        scoreboard.classList.add('hidden');
+        mainMenu.classList.remove('hidden');
+    });
+    
+    // Skor tablosu filtresi
+    document.getElementById('scoreboard-filter').addEventListener('change', function() {
+        scoreManager.displayScores(this.value);
+    });
+    
+    // Oyundan ana menüye dönme
+    document.getElementById('back-to-menu').addEventListener('click', function() {
+        if (gameState.isGameActive) {
+            if (confirm('Oyunu sonlandırmak istediğinize emin misiniz?')) {
+                endGame();
+                gameContainer.classList.add('hidden');
+                mainMenu.classList.remove('hidden');
+            }
+        } else {
+            gameContainer.classList.add('hidden');
+            mainMenu.classList.remove('hidden');
+        }
+    });
+    
+    // Oyun sonu modalı - Tekrar oyna
+    document.getElementById('play-again').addEventListener('click', function() {
+        gameOverModal.classList.add('hidden');
+        startGame();
+    });
+    
+    // Oyun sonu modalı - Ana menüye dön
+    document.getElementById('end-game').addEventListener('click', function() {
+        gameOverModal.classList.add('hidden');
+        gameContainer.classList.add('hidden');
+        mainMenu.classList.remove('hidden');
+    });
+    
+    // Oyunu başlatma fonksiyonu
+    function startGame() {
+        // Oyun durumunu sıfırla
+        gameState.score = 0;
+        gameState.matchedPairs = 0;
+        gameState.flippedCards = [];
+        gameState.isGameActive = true;
+        
+        // Zorluk seviyesine göre ayarları yap
+        const diffSettings = difficulties[gameState.difficulty];
+        gameState.totalPairs = diffSettings.pairs;
+        gameState.timeLeft = diffSettings.time;
+        
+        // Arayüzü güncelle
+        document.getElementById('player-name').textContent = `Oyuncu: ${gameState.username}`;
+        document.getElementById('score-display').textContent = `Skor: ${gameState.score}`;
+        document.getElementById('time-display').textContent = `Süre: ${gameState.timeLeft}`;
+        document.getElementById('timer-bar').style.width = '100%';
+        
+        const categoryNames = {
+            animals: 'Hayvanlar',
+            fruits: 'Meyveler',
+            vehicles: 'Taşıtlar'
+        };
+        
+        const difficultyNames = {
+            easy: 'Kolay',
+            medium: 'Orta',
+            hard: 'Zor'
+        };
+        
+        document.getElementById('category-display').textContent = `Kategori: ${categoryNames[gameState.category]}`;
+        document.getElementById('difficulty-display').textContent = `Zorluk: ${difficultyNames[gameState.difficulty]}`;
+        
+        // Kartları oluştur
+        createCards();
+        
+        // Zamanlayıcıyı başlat
+        startTimer();
+        
+        // Arayüzü göster
+        mainMenu.classList.add('hidden');
+        gameContainer.classList.remove('hidden');
+    }
+    
+    // Kartları oluşturma fonksiyonu
+    function createCards() {
+        gameBoard.innerHTML = '';
+        
+        // Kategori ve zorluk seviyesine göre kartları seç
+        const categoryItems = categories[gameState.category];
+        const pairCount = difficulties[gameState.difficulty].pairs;
+        
+        // Rastgele kartları seç
+        const selectedItems = [];
+        const shuffledItems = [...categoryItems].sort(() => 0.5 - Math.random());
+        
+        for (let i = 0; i < pairCount; i++) {
+            selectedItems.push(shuffledItems[i]);
+        }
+        
+        // Her karttan iki tane oluştur ve karıştır
+        gameState.cards = [...selectedItems, ...selectedItems]
+            .map(item => ({...item, id: Math.random()}))
+            .sort(() => 0.5 - Math.random());
+        
+        // Kartları DOM'a ekle
+        gameState.cards.forEach((card, index) => {
+            const cardElement = document.createElement('div');
+            cardElement.className = 'card aspect-square';
+            cardElement.dataset.index = index;
+            
+            cardElement.innerHTML = `
+                <div class="card-inner h-full w-full">
+                    <div class="card-front">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="card-back">
+                        <span class="card-icon">${card.icon}</span>
+                    </div>
+                </div>
+            `;
+            
+            cardElement.addEventListener('click', () => flipCard(index));
+            gameBoard.appendChild(cardElement);
+        });
+    }
+    
+    // Kart çevirme fonksiyonu
+    function flipCard(index) {
+        // Oyun aktif değilse, kart zaten çevrilmişse veya eşleşmişse işlem yapma
+        if (!gameState.isGameActive || 
+            gameState.flippedCards.length >= 2 || 
+            gameState.flippedCards.includes(index) ||
+            document.querySelectorAll('.card')[index].classList.contains('matched')) {
+            return;
+        }
+        
+        // Kartı çevir
+        const card = document.querySelectorAll('.card')[index];
+        card.classList.add('flipped');
+        gameState.flippedCards.push(index);
+        
+        // İki kart çevrildiyse kontrol et
+        if (gameState.flippedCards.length === 2) {
+            const [firstIndex, secondIndex] = gameState.flippedCards;
+            const firstCard = gameState.cards[firstIndex];
+            const secondCard = gameState.cards[secondIndex];
+            
+            if (firstCard.name === secondCard.name) {
+                // Eşleşme durumu
+                setTimeout(() => {
+                    document.querySelectorAll('.card')[firstIndex].classList.add('matched', 'bg-green-100');
+                    document.querySelectorAll('.card')[secondIndex].classList.add('matched', 'bg-green-100');
+                    
+                    gameState.matchedPairs++;
+                    gameState.score += 10;
+                    document.getElementById('score-display').textContent = `Skor: ${gameState.score}`;
+                    
+                    // Süre bonusu ekle
+                    gameState.timeLeft += difficulties[gameState.difficulty].timeBonus;
+                    document.getElementById('time-display').textContent = `Süre: ${gameState.timeLeft}`;
+                    
+                    // Tüm kartlar eşleştiyse oyunu bitir
+                    if (gameState.matchedPairs === gameState.totalPairs) {
+                        endGame(true);
+                    }
+                    
+                    gameState.flippedCards = [];
+                }, 500);
+            } else {
+                // Eşleşmeme durumu
+                setTimeout(() => {
+                    document.querySelectorAll('.card')[firstIndex].classList.remove('flipped');
+                    document.querySelectorAll('.card')[secondIndex].classList.remove('flipped');
+                    gameState.flippedCards = [];
+                }, 1000);
+            }
+        }
+    }
+    
+    // Zamanlayıcı başlatma fonksiyonu
+    function startTimer() {
+        if (gameState.timer) {
+            clearInterval(gameState.timer);
+        }
+        
+        const timerBar = document.getElementById('timer-bar');
+        const timeDisplay = document.getElementById('time-display');
+        const totalTime = difficulties[gameState.difficulty].time;
+        
+        gameState.timer = setInterval(() => {
+            gameState.timeLeft--;
+            timeDisplay.textContent = `Süre: ${gameState.timeLeft}`;
+            
+            // Zamanlayıcı çubuğunu güncelle
+            const percentage = (gameState.timeLeft / totalTime) * 100;
+            timerBar.style.width = `${percentage}%`;
+            
+            // Renk değişimi
+            if (percentage > 60) {
+                timerBar.classList.remove('bg-yellow-500', 'bg-red-500');
+                timerBar.classList.add('bg-indigo-600');
+            } else if (percentage > 30) {
+                timerBar.classList.remove('bg-indigo-600', 'bg-red-500');
+                timerBar.classList.add('bg-yellow-500');
+            } else {
+                timerBar.classList.remove('bg-indigo-600', 'bg-yellow-500');
+                timerBar.classList.add('bg-red-500');
+            }
+            
+            // Süre bittiyse oyunu bitir
+            if (gameState.timeLeft <= 0) {
+                endGame(false);
+            }
+        }, 1000);
+    }
+    
+    // Oyunu bitirme fonksiyonu
+    function endGame(isWin = false) {
+        gameState.isGameActive = false;
+        clearInterval(gameState.timer);
+        
+        // Skoru kaydet
+        scoreManager.saveScore({
+            username: gameState.username,
+            category: gameState.category,
+            difficulty: gameState.difficulty,
+            score: gameState.score,
+            timestamp: Date.now()
+        });
+        
+        // Oyun sonu modalını göster
+        document.getElementById('final-score').textContent = `Skorunuz: ${gameState.score}`;
+        
+        if (isWin) {
+            document.getElementById('game-result').textContent = 'Tebrikler! Tüm kartları eşleştirdiniz.';
+            document.getElementById('game-result').className = 'text-center mb-6 text-green-600 font-bold';
+        } else {
+            document.getElementById('game-result').textContent = 'Süre doldu! Tekrar deneyebilirsiniz.';
+            document.getElementById('game-result').className = 'text-center mb-6 text-red-600 font-bold';
+        }
+        
+        gameOverModal.classList.remove('hidden');
+    }
+    
+    // Sayfa yüklendiğinde ilk zorluk seviyesini seç
+    document.querySelector('.difficulty-btn[data-difficulty="easy"]').classList.add('ring-4', 'ring-indigo-300');
+</script>
+</html>
