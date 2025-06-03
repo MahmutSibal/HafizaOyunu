@@ -6,737 +6,865 @@
     <title>Hafıza Kart Oyunu</title>
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
     <style>
-		body {
-    font-family: 'Poppins', sans-serif;
-    background: linear-gradient(135deg, #6366f1, #8b5cf6);
-    min-height: 100vh;
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-/* Responsive container padding */
-#main-menu,
-#game-container,
-#scoreboard,
-#game-over-modal > div {
-    padding: 1rem;
-}
-
-@media (min-width: 640px) {
-    #main-menu,
-    #game-container,
-    #scoreboard,
-    #game-over-modal > div {
-        padding: 2rem;
+	    body {
+        font-family: 'Comic Neue', cursive;
+        background: linear-gradient(135deg, #c2e9fb 0%, #a1c4fd 100%);
+        min-height: 100vh;
     }
-}
-
-/* Card styles */
-.card {
-    perspective: 1000px;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-    border-radius: 0.75rem;
-    min-width: 80px;
-    min-height: 80px;
-    background: transparent;
-    cursor: pointer;
-    position: relative;
-}
-
-.card-inner {
-    position: relative;
-    width: 100%;
-    height: 100%;
-    transform-style: preserve-3d;
-    transition: transform 0.6s;
-}
-
-.card.flipped .card-inner {
-    transform: rotateY(180deg);
-}
-
-.card-front, .card-back {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.08);
-}
-
-.card-front {
-    background: linear-gradient(45deg, #4f46e5, #7c3aed);
-    color: #fff;
-}
-
-.card-back {
-    background-color: white;
-    color: #444;
-    transform: rotateY(180deg);
-}
-
-.card-icon {
-    font-size: 2.2rem;
-}
-
-.matched {
-    box-shadow: 0 0 0 4px #34d399;
-}
-
-@keyframes pulse {
-    0%, 100% { transform: scale(1);}
-    50% { transform: scale(1.05);}
-}
-
-.pulse {
-    animation: pulse 1s infinite;
-}
-
-.timer-bar {
-    transition: width 1s linear;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0;}
-    to   { opacity: 1;}
-}
-.fade-in {
-    animation: fadeIn 0.5s ease-in;
-}
-
-@keyframes slideIn {
-    from { transform: translateY(-20px); opacity: 0;}
-    to   { transform: translateY(0); opacity: 1;}
-}
-.slide-in {
-    animation: slideIn 0.5s ease-out;
-}
-
-/* Responsive grid for game board */
-#game-board {
-    display: grid;
-    gap: 0.75rem;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-@media (min-width: 640px) {
-    #game-board {
-        grid-template-columns: repeat(3, minmax(0, 1fr));
+    
+    .character {
+        transition: all 0.3s ease;
     }
-}
-@media (min-width: 768px) {
-    #game-board {
-        grid-template-columns: repeat(4, minmax(0, 1fr));
+    
+    .character:hover {
+        transform: scale(1.1);
     }
-}
-@media (min-width: 1024px) {
-    #game-board {
-        grid-template-columns: repeat(5, minmax(0, 1fr));
+    
+    .game-card {
+        transition: all 0.3s ease;
+        transform-style: preserve-3d;
+        perspective: 1000px;
     }
-}
-
-/* Scoreboard table responsive */
-#scoreboard table {
-    font-size: 0.95rem;
-}
-
-#scoreboard th, #scoreboard td {
-    padding: 0.5rem 0.75rem;
-    white-space: nowrap;
-}
-@media (max-width: 500px) {
-    #scoreboard table, #scoreboard thead, #scoreboard tbody, #scoreboard th, #scoreboard td, #scoreboard tr {
-        display: block;
+    
+    .game-card:hover {
+        transform: translateY(-10px);
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.1);
     }
-    #scoreboard thead {
-        display: none;
+    
+    .btn-bounce:active {
+        transform: scale(0.95);
     }
-    #scoreboard td {
-        border: none;
-        position: relative;
-        padding-left: 40%;
-        min-height: 36px;
-    }
-    #scoreboard td:before {
+    
+    .confetti {
         position: absolute;
-        left: 0.75rem;
-        top: 0;
-        width: 36%;
-        white-space: nowrap;
-        font-weight: 600;
-        color: #6366f1;
-        font-size: 0.92em;
+        width: 10px;
+        height: 10px;
+        background-color: #f00;
+        animation: fall 3s ease-in infinite;
     }
-    #scoreboard td:nth-of-type(1):before { content: "Kullanıcı"; }
-    #scoreboard td:nth-of-type(2):before { content: "Kategori"; }
-    #scoreboard td:nth-of-type(3):before { content: "Zorluk"; }
-    #scoreboard td:nth-of-type(4):before { content: "Skor"; }
-}
-
-/* Modal responsive */
-#game-over-modal > div {
-    width: 90vw;
-    max-width: 380px;
-}
-@media (min-width: 500px) {
-    #game-over-modal > div {
-        max-width: 400px;
+    
+    @keyframes fall {
+        to {
+            transform: translateY(100vh) rotate(360deg);
+            opacity: 0;
+        }
     }
-}
-
-/* Buttons responsive & focus state */
-button, .difficulty-btn {
-    outline: none;
-    transition: box-shadow 0.2s, background 0.2s;
-}
-button:focus, .difficulty-btn:focus {
-    box-shadow: 0 0 0 2px #818cf8;
-}
-
-/* Hide scrollbars in scoreboard on mobile */
-#scoreboard .overflow-y-auto {
-    scrollbar-width: thin;
-    scrollbar-color: #8b5cf6 #f3f4f6;
-}
-#scoreboard .overflow-y-auto::-webkit-scrollbar {
-    width: 6px;
-    background-color: #f3f4f6;
-}
-#scoreboard .overflow-y-auto::-webkit-scrollbar-thumb {
-    background-color: #8b5cf6;
-    border-radius: 5px;
-}
-
-/* Small input and select tweaks */
-input[type="text"], select {
-    font-size: 1rem;
-    padding: 0.75rem 1rem;
-}
-@media (max-width: 400px) {
-    input[type="text"], select {
-        font-size: 0.95rem;
-        padding: 0.6rem 0.5rem;
+    
+    .star-animation {
+        animation: pulse 1s infinite alternate;
     }
-}
-
-/* Misc spacing and layout improvements */
-.max-w-4xl, .max-w-md {
-    margin-left: auto;
-    margin-right: auto;
-}
-@media (max-width: 400px) {
-    .max-w-4xl, .max-w-md {
-        max-width: 98vw;
+    
+    @keyframes pulse {
+        from {
+            transform: scale(1);
+            opacity: 1;
+        }
+        to {
+            transform: scale(1.2);
+            opacity: 0.8;
+        }
     }
-}
 </style>
-    <div class="mb-6">
-        <label class="block text-gray-700 font-semibold mb-2">Kullanıcı Adı:</label>
-        <input type="text" id="username-input" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="Kullanıcı adınızı girin">
-    </div>
-    
-    <div class="mb-6">
-        <label class="block text-gray-700 font-semibold mb-2">Kategori:</label>
-        <select id="category-select" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="animals">Hayvanlar</option>
-            <option value="fruits">Meyveler</option>
-            <option value="vehicles">Taşıtlar</option>
-        </select>
-    </div>
-    
-    <div class="mb-8">
-        <label class="block text-gray-700 font-semibold mb-2">Zorluk Seviyesi:</label>
-        <div class="flex justify-between gap-4">
-            <button class="difficulty-btn flex-1 py-2 px-4 bg-green-500 text-white rounded-lg hover:bg-green-600 transition" data-difficulty="easy">Kolay</button>
-            <button class="difficulty-btn flex-1 py-2 px-4 bg-yellow-500 text-white rounded-lg hover:bg-yellow-600 transition" data-difficulty="medium">Orta</button>
-            <button class="difficulty-btn flex-1 py-2 px-4 bg-red-500 text-white rounded-lg hover:bg-red-600 transition" data-difficulty="hard">Zor</button>
+        <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
+            <h2 class="text-2xl font-bold text-center text-indigo-700 mb-6">Giriş Yap</h2>
+            
+            <div class="mb-6">
+                <label class="block text-lg font-medium text-gray-700 mb-2">Adın:</label>
+                <input type="text" id="username" class="w-full px-4 py-3 rounded-xl border-2 border-indigo-300 focus:border-indigo-500 focus:outline-none text-lg" placeholder="Adını yaz">
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-lg font-medium text-gray-700 mb-2">Yaşın:</label>
+                <select id="age" class="w-full px-4 py-3 rounded-xl border-2 border-indigo-300 focus:border-indigo-500 focus:outline-none text-lg">
+                    <option value="">Yaşını seç</option>
+                    <option value="5">5</option>
+                    <option value="6">6</option>
+                    <option value="7">7</option>
+                    <option value="8">8</option>
+                    <option value="9">9</option>
+                    <option value="10">10</option>
+                    <option value="11">11</option>
+                    <option value="12">12</option>
+                </select>
+            </div>
+            
+            <div class="mb-6">
+                <label class="block text-lg font-medium text-gray-700 mb-2">Karakterini Seç:</label>
+                <div class="flex justify-center space-x-4">
+                    <div class="character cursor-pointer p-2 rounded-full" data-character="boy" onclick="selectCharacter('boy')">
+                        <svg class="w-16 h-16" viewBox="0 0 100 100">
+                            <circle cx="50" cy="40" r="25" fill="#FFD699" />
+                            <circle cx="40" cy="35" r="3" fill="#333" />
+                            <circle cx="60" cy="35" r="3" fill="#333" />
+                            <path d="M45 50 Q50 55 55 50" stroke="#333" stroke-width="2" fill="none" />
+                            <path d="M30 30 Q35 20 45 25" stroke="#333" stroke-width="2" fill="none" />
+                            <path d="M70 30 Q65 20 55 25" stroke="#333" stroke-width="2" fill="none" />
+                            <rect x="35" y="65" width="30" height="30" fill="#5B8EFF" rx="5" />
+                            <rect x="35" y="95" width="12" height="15" fill="#6B5B95" />
+                            <rect x="53" y="95" width="12" height="15" fill="#6B5B95" />
+                        </svg>
+                        <p class="text-center mt-1">Erkek</p>
+                    </div>
+                    <div class="character cursor-pointer p-2 rounded-full" data-character="girl" onclick="selectCharacter('girl')">
+                        <svg class="w-16 h-16" viewBox="0 0 100 100">
+                            <circle cx="50" cy="40" r="25" fill="#FFD699" />
+                            <circle cx="40" cy="35" r="3" fill="#333" />
+                            <circle cx="60" cy="35" r="3" fill="#333" />
+                            <path d="M45 50 Q50 55 55 50" stroke="#333" stroke-width="2" fill="none" />
+                            <path d="M25 35 Q35 15 50 20 Q65 15 75 35" stroke="#333" stroke-width="2" fill="none" />
+                            <rect x="35" y="65" width="30" height="30" fill="#FF9AA2" rx="5" />
+                            <rect x="35" y="95" width="12" height="15" fill="#FFB7B2" />
+                            <rect x="53" y="95" width="12" height="15" fill="#FFB7B2" />
+                        </svg>
+                        <p class="text-center mt-1">Kız</p>
+                    </div>
+                </div>
+            </div>
+            
+            <button id="startButton" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-4 rounded-xl text-lg transition duration-300 btn-bounce" disabled>
+                Başla!
+            </button>
         </div>
     </div>
     
-    <button id="start-game" class="w-full py-3 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition pulse">Oyunu Başlat</button>
-    
-    <button id="show-scores" class="w-full mt-4 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">Skor Tablosu</button>
-</div>
-
-<!-- Oyun Alanı -->
-<div id="game-container" class="max-w-4xl mx-auto mt-6 hidden">
-    <div class="bg-white rounded-xl shadow-lg p-4 mb-4">
-        <div class="flex flex-wrap justify-between items-center">
-            <div>
-                <h2 id="player-name" class="text-xl font-bold text-indigo-700">Oyuncu: </h2>
-                <p id="score-display" class="text-gray-700">Skor: 0</p>
+    <!-- Main Game Screen (initially hidden) -->
+    <div id="gameScreen" class="hidden">
+        <div class="flex justify-between items-center mb-8">
+            <div class="flex items-center">
+                <div id="playerCharacter" class="mr-3"></div>
+                <div>
+                    <h2 id="welcomeMessage" class="text-2xl font-bold text-indigo-800"></h2>
+                    <div class="flex items-center">
+                        <p class="mr-2">Yıldızlar:</p>
+                        <div id="starsContainer" class="flex"></div>
+                    </div>
+                </div>
             </div>
-            <div class="text-center">
-                <p id="category-display" class="font-semibold text-indigo-600">Kategori: </p>
-                <p id="difficulty-display" class="text-sm text-gray-600">Zorluk: </p>
+            <button id="logoutButton" class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold py-2 px-4 rounded-lg transition duration-300">
+                Çıkış
+            </button>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <!-- Math Game -->
+            <div class="game-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-green-500 p-4">
+                    <h3 class="text-xl font-bold text-white">Matematik Oyunu</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-center mb-4">
+                        <svg class="w-20 h-20" viewBox="0 0 100 100">
+                            <circle cx="50" cy="50" r="45" fill="#E6F7FF" stroke="#4CAF50" stroke-width="3" />
+                            <text x="30" y="45" font-size="20" fill="#333">1+2</text>
+                            <text x="40" y="70" font-size="20" fill="#333">=3</text>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600 mb-4">Toplama, çıkarma ve çarpma işlemlerini öğren!</p>
+                    <button class="w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 btn-bounce" onclick="startMathGame()">
+                        Oyna
+                    </button>
+                </div>
             </div>
-            <div class="text-right">
-                <p id="time-display" class="text-xl font-bold text-indigo-700">Süre: 60</p>
-                <div class="w-32 h-2 bg-gray-200 rounded-full mt-1">
-                    <div id="timer-bar" class="h-full bg-indigo-600 rounded-full timer-bar" style="width: 100%"></div>
+            
+            <!-- Word Game -->
+            <div class="game-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-blue-500 p-4">
+                    <h3 class="text-xl font-bold text-white">Kelime Oyunu</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-center mb-4">
+                        <svg class="w-20 h-20" viewBox="0 0 100 100">
+                            <rect x="10" y="20" width="80" height="60" rx="5" fill="#E6F7FF" stroke="#2196F3" stroke-width="3" />
+                            <text x="25" y="55" font-size="16" fill="#333">K_T_P</text>
+                            <text x="25" y="75" font-size="12" fill="#666">Eksik harfi bul</text>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600 mb-4">Kelimeleri tamamla ve yeni sözcükler öğren!</p>
+                    <button class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 btn-bounce" onclick="startWordGame()">
+                        Oyna
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Memory Game -->
+            <div class="game-card bg-white rounded-2xl shadow-lg overflow-hidden">
+                <div class="bg-purple-500 p-4">
+                    <h3 class="text-xl font-bold text-white">Hafıza Oyunu</h3>
+                </div>
+                <div class="p-6">
+                    <div class="flex justify-center mb-4">
+                        <svg class="w-20 h-20" viewBox="0 0 100 100">
+                            <rect x="20" y="20" width="25" height="25" rx="3" fill="#E6E6FA" stroke="#9C27B0" stroke-width="2" />
+                            <rect x="55" y="20" width="25" height="25" rx="3" fill="#E6E6FA" stroke="#9C27B0" stroke-width="2" />
+                            <rect x="20" y="55" width="25" height="25" rx="3" fill="#E6E6FA" stroke="#9C27B0" stroke-width="2" />
+                            <rect x="55" y="55" width="25" height="25" rx="3" fill="#E6E6FA" stroke="#9C27B0" stroke-width="2" />
+                            <text x="28" y="37" font-size="14" fill="#333">A</text>
+                            <text x="63" y="37" font-size="14" fill="#333">B</text>
+                            <text x="28" y="72" font-size="14" fill="#333">C</text>
+                            <text x="63" y="72" font-size="14" fill="#333">A</text>
+                        </svg>
+                    </div>
+                    <p class="text-gray-600 mb-4">Eşleştirme yaparak hafızanı geliştir!</p>
+                    <button class="w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition duration-300 btn-bounce" onclick="startMemoryGame()">
+                        Oyna
+                    </button>
                 </div>
             </div>
         </div>
     </div>
     
-    <div id="game-board" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-3 md:gap-4"></div>
-    
-    <div class="mt-6 text-center">
-        <button id="back-to-menu" class="px-6 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">Ana Menüye Dön</button>
-    </div>
-</div>
-
-<!-- Skor Tablosu -->
-<div id="scoreboard" class="max-w-md mx-auto bg-white rounded-xl shadow-lg p-6 mt-10 hidden slide-in">
-    <h2 class="text-2xl font-bold text-center text-indigo-700 mb-4">Skor Tablosu</h2>
-    
-    <div class="mb-4">
-        <select id="scoreboard-filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <option value="all">Tüm Skorlar</option>
-            <option value="animals">Hayvanlar</option>
-            <option value="fruits">Meyveler</option>
-            <option value="vehicles">Taşıtlar</option>
-        </select>
-    </div>
-    
-    <div class="overflow-y-auto max-h-64">
-        <table class="w-full">
-            <thead class="bg-indigo-100">
-                <tr>
-                    <th class="py-2 px-4 text-left">Kullanıcı</th>
-                    <th class="py-2 px-4 text-left">Kategori</th>
-                    <th class="py-2 px-4 text-left">Zorluk</th>
-                    <th class="py-2 px-4 text-right">Skor</th>
-                </tr>
-            </thead>
-            <tbody id="scores-table-body">
-                <!-- Skorlar buraya eklenecek -->
-            </tbody>
-        </table>
-    </div>
-    
-    <button id="back-from-scores" class="w-full mt-6 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">Ana Menüye Dön</button>
-</div>
-
-<!-- Oyun Sonu Modal -->
-<div id="game-over-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
-    <div class="bg-white rounded-xl shadow-lg p-6 max-w-md w-full mx-4 fade-in">
-        <h2 class="text-2xl font-bold text-center text-indigo-700 mb-2">Oyun Bitti!</h2>
-        <p id="final-score" class="text-xl text-center mb-4">Skorunuz: 0</p>
-        <p id="game-result" class="text-center mb-6">Tebrikler!</p>
+    <!-- Math Game Screen -->
+    <div id="mathGameScreen" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+            <button class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold py-2 px-4 rounded-lg transition duration-300" onclick="backToMainMenu()">
+                ← Geri
+            </button>
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-green-700">Matematik Oyunu</h2>
+                <p class="text-green-600">Doğru cevabı seç!</p>
+            </div>
+            <div class="bg-green-100 py-2 px-4 rounded-lg">
+                <p class="text-green-800">Puan: <span id="mathScore">0</span></p>
+            </div>
+        </div>
         
-        <div class="flex gap-4">
-            <button id="play-again" class="flex-1 py-2 bg-indigo-600 text-white font-bold rounded-lg hover:bg-indigo-700 transition">Tekrar Oyna</button>
-            <button id="end-game" class="flex-1 py-2 bg-gray-200 text-gray-700 font-semibold rounded-lg hover:bg-gray-300 transition">Ana Menü</button>
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-2xl mx-auto">
+            <div class="text-center mb-8">
+                <div class="text-4xl font-bold text-gray-800 mb-6" id="mathQuestion">5 + 3 = ?</div>
+                <div class="grid grid-cols-2 gap-4">
+                    <button class="math-option bg-green-100 hover:bg-green-200 text-green-800 font-bold py-4 px-6 rounded-xl text-2xl transition duration-300 btn-bounce" onclick="checkMathAnswer(this)">7</button>
+                    <button class="math-option bg-green-100 hover:bg-green-200 text-green-800 font-bold py-4 px-6 rounded-xl text-2xl transition duration-300 btn-bounce" onclick="checkMathAnswer(this)">8</button>
+                    <button class="math-option bg-green-100 hover:bg-green-200 text-green-800 font-bold py-4 px-6 rounded-xl text-2xl transition duration-300 btn-bounce" onclick="checkMathAnswer(this)">9</button>
+                    <button class="math-option bg-green-100 hover:bg-green-200 text-green-800 font-bold py-4 px-6 rounded-xl text-2xl transition duration-300 btn-bounce" onclick="checkMathAnswer(this)">10</button>
+                </div>
+            </div>
+            
+            <div id="mathResult" class="hidden text-center p-4 rounded-xl mb-6"></div>
+            
+            <div class="text-center">
+                <button id="nextMathQuestion" class="hidden bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-xl transition duration-300 btn-bounce">
+                    Sonraki Soru
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Word Game Screen -->
+    <div id="wordGameScreen" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+            <button class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold py-2 px-4 rounded-lg transition duration-300" onclick="backToMainMenu()">
+                ← Geri
+            </button>
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-blue-700">Kelime Oyunu</h2>
+                <p class="text-blue-600">Eksik harfi bul!</p>
+            </div>
+            <div class="bg-blue-100 py-2 px-4 rounded-lg">
+                <p class="text-blue-800">Puan: <span id="wordScore">0</span></p>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-2xl mx-auto">
+            <div class="text-center mb-8">
+                <div class="mb-4">
+                    <img id="wordImage" class="h-40 mx-auto object-contain" src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB4PSIyMCIgeT0iMjAiIHdpZHRoPSIxNjAiIGhlaWdodD0iMTYwIiBmaWxsPSIjZTZmN2ZmIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik01MCw1MCBMNzAsNTAgTDcwLDE1MCBMNTAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNODAsNTAgTDEwMCw1MCBMMTAWLDE1MCBMODAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNMTEwLDUwIEwxMzAsNTAgTDEzMCwxNTAgTDExMCwxNTAgWiIgZmlsbD0iI2ZmYzEwNyIvPjxwYXRoIGQ9Ik0xNDAsNTAgTDE2MCw1MCBMMTY1LDgwIEwxNTAsMTUwIEwxNDAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48L3N2Zz4=" alt="Kelime resmi">
+                </div>
+                <div class="text-3xl font-bold text-gray-800 mb-6" id="wordPuzzle">K _ T _ P</div>
+                <div class="grid grid-cols-4 gap-3">
+                    <button class="word-option bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl text-xl transition duration-300 btn-bounce" onclick="checkWordAnswer(this)">A</button>
+                    <button class="word-option bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl text-xl transition duration-300 btn-bounce" onclick="checkWordAnswer(this)">E</button>
+                    <button class="word-option bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl text-xl transition duration-300 btn-bounce" onclick="checkWordAnswer(this)">İ</button>
+                    <button class="word-option bg-blue-100 hover:bg-blue-200 text-blue-800 font-bold py-3 px-4 rounded-xl text-xl transition duration-300 btn-bounce" onclick="checkWordAnswer(this)">O</button>
+                </div>
+            </div>
+            
+            <div id="wordResult" class="hidden text-center p-4 rounded-xl mb-6"></div>
+            
+            <div class="text-center">
+                <button id="nextWordQuestion" class="hidden bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-6 rounded-xl transition duration-300 btn-bounce">
+                    Sonraki Kelime
+                </button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Memory Game Screen -->
+    <div id="memoryGameScreen" class="hidden">
+        <div class="flex justify-between items-center mb-6">
+            <button class="bg-indigo-100 hover:bg-indigo-200 text-indigo-800 font-bold py-2 px-4 rounded-lg transition duration-300" onclick="backToMainMenu()">
+                ← Geri
+            </button>
+            <div class="text-center">
+                <h2 class="text-2xl font-bold text-purple-700">Hafıza Oyunu</h2>
+                <p class="text-purple-600">Eşleşen kartları bul!</p>
+            </div>
+            <div class="bg-purple-100 py-2 px-4 rounded-lg">
+                <p class="text-purple-800">Eşleşme: <span id="memoryScore">0</span></p>
+            </div>
+        </div>
+        
+        <div class="bg-white rounded-2xl shadow-xl p-8 max-w-3xl mx-auto">
+            <div id="memoryBoard" class="grid grid-cols-3 md:grid-cols-4 gap-4">
+                <!-- Memory cards will be generated here -->
+            </div>
+            
+            <div id="memoryResult" class="hidden text-center p-4 rounded-xl mt-6"></div>
+            
+            <div class="text-center mt-6">
+                <button id="resetMemoryGame" class="bg-purple-500 hover:bg-purple-600 text-white font-bold py-3 px-6 rounded-xl transition duration-300 btn-bounce">
+                    Yeniden Başlat
+                </button>
+            </div>
         </div>
     </div>
 </div>
 
 <script>
-    // Oyun verileri
-    const categories = {
-        animals: [
-            { name: "Kedi", icon: "🐱" }, { name: "Köpek", icon: "🐶" }, 
-            { name: "Fil", icon: "🐘" }, { name: "Aslan", icon: "🦁" },
-            { name: "Maymun", icon: "🐵" }, { name: "Zürafa", icon: "🦒" },
-            { name: "Tavşan", icon: "🐰" }, { name: "Ayı", icon: "🐻" },
-            { name: "Panda", icon: "🐼" }, { name: "Koala", icon: "🐨" },
-            { name: "Timsah", icon: "🐊" }, { name: "Balık", icon: "🐠" }
-        ],
-        fruits: [
-            { name: "Elma", icon: "🍎" }, { name: "Muz", icon: "🍌" },
-            { name: "Üzüm", icon: "🍇" }, { name: "Çilek", icon: "🍓" },
-            { name: "Karpuz", icon: "🍉" }, { name: "Ananas", icon: "🍍" },
-            { name: "Kiraz", icon: "🍒" }, { name: "Şeftali", icon: "🍑" },
-            { name: "Armut", icon: "🍐" }, { name: "Limon", icon: "🍋" },
-            { name: "Portakal", icon: "🍊" }, { name: "Hindistan Cevizi", icon: "🥥" }
-        ],
-        vehicles: [
-            { name: "Araba", icon: "🚗" }, { name: "Otobüs", icon: "🚌" },
-            { name: "Tren", icon: "🚂" }, { name: "Uçak", icon: "✈️" },
-            { name: "Gemi", icon: "🚢" }, { name: "Taksi", icon: "🚕" },
-            { name: "Ambulans", icon: "🚑" }, { name: "Polis Arabası", icon: "🚓" },
-            { name: "Bisiklet", icon: "🚲" }, { name: "Helikopter", icon: "🚁" },
-            { name: "Roket", icon: "🚀" }, { name: "Motosiklet", icon: "🏍️" }
-        ]
+    // Global variables
+    let userData = {
+        username: '',
+        age: '',
+        character: '',
+        stars: 0
     };
     
-    const difficulties = {
-        easy: { pairs: 6, time: 60, timeBonus: 5 },
-        medium: { pairs: 8, time: 50, timeBonus: 3 },
-        hard: { pairs: 12, time: 40, timeBonus: 2 }
-    };
+    let selectedCharacter = null;
     
-    // Oyun durumu
-    let gameState = {
-        username: "",
-        category: "animals",
-        difficulty: "easy",
-        score: 0,
-        timeLeft: 60,
-        cards: [],
-        flippedCards: [],
-        matchedPairs: 0,
-        totalPairs: 6,
-        timer: null,
-        isGameActive: false
-    };
+    // Math game variables
+    let mathScore = 0;
+    let currentMathAnswer = 0;
     
-    // Yerel depolama için skor yönetimi
-    const scoreManager = {
-        getScores: function() {
-            const scores = localStorage.getItem('memoryGameScores');
-            return scores ? JSON.parse(scores) : [];
-        },
-        
-        saveScore: function(score) {
-            const scores = this.getScores();
-            scores.push(score);
-            scores.sort((a, b) => b.score - a.score);
-            localStorage.setItem('memoryGameScores', JSON.stringify(scores));
-        },
-        
-        displayScores: function(filter = 'all') {
-            const scores = this.getScores();
-            const tableBody = document.getElementById('scores-table-body');
-            tableBody.innerHTML = '';
-            
-            const filteredScores = filter === 'all' ? 
-                scores : 
-                scores.filter(score => score.category === filter);
-            
-            filteredScores.forEach(score => {
-                const row = document.createElement('tr');
-                row.className = 'border-b border-gray-200';
-                
-                const difficultyText = {
-                    easy: 'Kolay',
-                    medium: 'Orta',
-                    hard: 'Zor'
-                };
-                
-                const categoryText = {
-                    animals: 'Hayvanlar',
-                    fruits: 'Meyveler',
-                    vehicles: 'Taşıtlar'
-                };
-                
-                row.innerHTML = `
-                    <td class="py-2 px-4">${score.username}</td>
-                    <td class="py-2 px-4">${categoryText[score.category]}</td>
-                    <td class="py-2 px-4">${difficultyText[score.difficulty]}</td>
-                    <td class="py-2 px-4 text-right font-semibold">${score.score}</td>
-                `;
-                
-                tableBody.appendChild(row);
+    // Word game variables
+    let wordScore = 0;
+    let currentWordAnswer = '';
+    let currentWordPuzzle = '';
+    
+    // Memory game variables
+    let memoryScore = 0;
+    let flippedCards = [];
+    let matchedPairs = 0;
+    let memoryLocked = false;
+    
+    // Words for the word game
+    const words = [
+        { word: 'KİTAP', image: 'book', missingIndexes: [1, 3] },
+        { word: 'KALEM', image: 'pencil', missingIndexes: [1, 3] },
+        { word: 'OKUL', image: 'school', missingIndexes: [0, 2] },
+        { word: 'ELMA', image: 'apple', missingIndexes: [1, 3] },
+        { word: 'GÜNEŞ', image: 'sun', missingIndexes: [1, 3] }
+    ];
+    
+    // Memory game cards
+    const memoryCards = [
+        { id: 1, emoji: '🍎', name: 'apple' },
+        { id: 2, emoji: '🍌', name: 'banana' },
+        { id: 3, emoji: '🍓', name: 'strawberry' },
+        { id: 4, emoji: '🍊', name: 'orange' },
+        { id: 5, emoji: '🍇', name: 'grapes' },
+        { id: 6, emoji: '🍉', name: 'watermelon' },
+        { id: 7, emoji: '🥝', name: 'kiwi' },
+        { id: 8, emoji: '🍍', name: 'pineapple' }
+    ];
+    
+    // Initialize the app
+    document.addEventListener('DOMContentLoaded', function() {
+        // Character selection
+        document.querySelectorAll('.character').forEach(char => {
+            char.addEventListener('click', function() {
+                document.querySelectorAll('.character').forEach(c => {
+                    c.classList.remove('bg-indigo-100');
+                });
+                this.classList.add('bg-indigo-100');
+                selectedCharacter = this.dataset.character;
+                checkLoginForm();
             });
-            
-            if (filteredScores.length === 0) {
-                const row = document.createElement('tr');
-                row.innerHTML = `
-                    <td colspan="4" class="py-4 text-center text-gray-500">Henüz skor kaydedilmemiş</td>
-                `;
-                tableBody.appendChild(row);
-            }
-        }
-    };
-    
-    // DOM elementleri
-    const mainMenu = document.getElementById('main-menu');
-    const gameContainer = document.getElementById('game-container');
-    const gameBoard = document.getElementById('game-board');
-    const scoreboard = document.getElementById('scoreboard');
-    const gameOverModal = document.getElementById('game-over-modal');
-    
-    // Oyun başlatma
-    document.getElementById('start-game').addEventListener('click', function() {
-        const username = document.getElementById('username-input').value.trim();
-        if (!username) {
-            alert('Lütfen bir kullanıcı adı girin!');
-            return;
-        }
-        
-        gameState.username = username;
-        gameState.category = document.getElementById('category-select').value;
-        
-        // Zorluk seviyesi seçilmediyse varsayılan olarak kolay
-        if (!gameState.difficulty) {
-            gameState.difficulty = 'easy';
-        }
-        
-        startGame();
-    });
-    
-    // Zorluk seviyesi seçimi
-    document.querySelectorAll('.difficulty-btn').forEach(btn => {
-        btn.addEventListener('click', function() {
-            document.querySelectorAll('.difficulty-btn').forEach(b => {
-                b.classList.remove('ring-4', 'ring-indigo-300');
-            });
-            this.classList.add('ring-4', 'ring-indigo-300');
-            gameState.difficulty = this.dataset.difficulty;
         });
+        
+        // Input validation
+        document.getElementById('username').addEventListener('input', checkLoginForm);
+        document.getElementById('age').addEventListener('change', checkLoginForm);
+        
+        // Start button
+        document.getElementById('startButton').addEventListener('click', startGame);
+        
+        // Logout button
+        document.getElementById('logoutButton').addEventListener('click', logout);
+        
+        // Next question buttons
+        document.getElementById('nextMathQuestion').addEventListener('click', generateMathQuestion);
+        document.getElementById('nextWordQuestion').addEventListener('click', generateWordQuestion);
+        document.getElementById('resetMemoryGame').addEventListener('click', setupMemoryGame);
     });
     
-    // Skor tablosu gösterme
-    document.getElementById('show-scores').addEventListener('click', function() {
-        mainMenu.classList.add('hidden');
-        scoreboard.classList.remove('hidden');
-        scoreManager.displayScores();
-    });
-    
-    // Skor tablosundan ana menüye dönme
-    document.getElementById('back-from-scores').addEventListener('click', function() {
-        scoreboard.classList.add('hidden');
-        mainMenu.classList.remove('hidden');
-    });
-    
-    // Skor tablosu filtresi
-    document.getElementById('scoreboard-filter').addEventListener('change', function() {
-        scoreManager.displayScores(this.value);
-    });
-    
-    // Oyundan ana menüye dönme
-    document.getElementById('back-to-menu').addEventListener('click', function() {
-        if (gameState.isGameActive) {
-            if (confirm('Oyunu sonlandırmak istediğinize emin misiniz?')) {
-                endGame();
-                gameContainer.classList.add('hidden');
-                mainMenu.classList.remove('hidden');
-            }
-        } else {
-            gameContainer.classList.add('hidden');
-            mainMenu.classList.remove('hidden');
-        }
-    });
-    
-    // Oyun sonu modalı - Tekrar oyna
-    document.getElementById('play-again').addEventListener('click', function() {
-        gameOverModal.classList.add('hidden');
-        startGame();
-    });
-    
-    // Oyun sonu modalı - Ana menüye dön
-    document.getElementById('end-game').addEventListener('click', function() {
-        gameOverModal.classList.add('hidden');
-        gameContainer.classList.add('hidden');
-        mainMenu.classList.remove('hidden');
-    });
-    
-    // Oyunu başlatma fonksiyonu
-    function startGame() {
-        // Oyun durumunu sıfırla
-        gameState.score = 0;
-        gameState.matchedPairs = 0;
-        gameState.flippedCards = [];
-        gameState.isGameActive = true;
-        
-        // Zorluk seviyesine göre ayarları yap
-        const diffSettings = difficulties[gameState.difficulty];
-        gameState.totalPairs = diffSettings.pairs;
-        gameState.timeLeft = diffSettings.time;
-        
-        // Arayüzü güncelle
-        document.getElementById('player-name').textContent = `Oyuncu: ${gameState.username}`;
-        document.getElementById('score-display').textContent = `Skor: ${gameState.score}`;
-        document.getElementById('time-display').textContent = `Süre: ${gameState.timeLeft}`;
-        document.getElementById('timer-bar').style.width = '100%';
-        
-        const categoryNames = {
-            animals: 'Hayvanlar',
-            fruits: 'Meyveler',
-            vehicles: 'Taşıtlar'
-        };
-        
-        const difficultyNames = {
-            easy: 'Kolay',
-            medium: 'Orta',
-            hard: 'Zor'
-        };
-        
-        document.getElementById('category-display').textContent = `Kategori: ${categoryNames[gameState.category]}`;
-        document.getElementById('difficulty-display').textContent = `Zorluk: ${difficultyNames[gameState.difficulty]}`;
-        
-        // Kartları oluştur
-        createCards();
-        
-        // Zamanlayıcıyı başlat
-        startTimer();
-        
-        // Arayüzü göster
-        mainMenu.classList.add('hidden');
-        gameContainer.classList.remove('hidden');
+    function selectCharacter(character) {
+        selectedCharacter = character;
+        document.querySelectorAll('.character').forEach(c => {
+            c.classList.remove('bg-indigo-100');
+        });
+        document.querySelector(`[data-character="${character}"]`).classList.add('bg-indigo-100');
+        checkLoginForm();
     }
     
-    // Kartları oluşturma fonksiyonu
-    function createCards() {
-        gameBoard.innerHTML = '';
+    function checkLoginForm() {
+        const username = document.getElementById('username').value.trim();
+        const age = document.getElementById('age').value;
+        const startButton = document.getElementById('startButton');
         
-        // Kategori ve zorluk seviyesine göre kartları seç
-        const categoryItems = categories[gameState.category];
-        const pairCount = difficulties[gameState.difficulty].pairs;
+        if (username && age && selectedCharacter) {
+            startButton.disabled = false;
+            startButton.classList.remove('opacity-50', 'cursor-not-allowed');
+        } else {
+            startButton.disabled = true;
+            startButton.classList.add('opacity-50', 'cursor-not-allowed');
+        }
+    }
+    
+    function startGame() {
+        // Save user data
+        userData.username = document.getElementById('username').value.trim();
+        userData.age = document.getElementById('age').value;
+        userData.character = selectedCharacter;
         
-        // Rastgele kartları seç
-        const selectedItems = [];
-        const shuffledItems = [...categoryItems].sort(() => 0.5 - Math.random());
+        // Hide login screen and show game screen
+        document.getElementById('loginScreen').classList.add('hidden');
+        document.getElementById('gameScreen').classList.remove('hidden');
         
-        for (let i = 0; i < pairCount; i++) {
-            selectedItems.push(shuffledItems[i]);
+        // Update welcome message
+        document.getElementById('welcomeMessage').textContent = `Merhaba, ${userData.username}!`;
+        
+        // Set character icon
+        const characterSVG = document.querySelector(`[data-character="${userData.character}"]`).querySelector('svg').cloneNode(true);
+        characterSVG.setAttribute('class', 'w-12 h-12');
+        document.getElementById('playerCharacter').appendChild(characterSVG);
+        
+        // Initialize stars
+        updateStars();
+    }
+    
+    function logout() {
+        // Reset user data
+        userData = {
+            username: '',
+            age: '',
+            character: '',
+            stars: 0
+        };
+        
+        // Reset game scores
+        mathScore = 0;
+        wordScore = 0;
+        memoryScore = 0;
+        
+        // Clear form
+        document.getElementById('username').value = '';
+        document.getElementById('age').value = '';
+        selectedCharacter = null;
+        document.querySelectorAll('.character').forEach(c => {
+            c.classList.remove('bg-indigo-100');
+        });
+        
+        // Show login screen and hide all game screens
+        document.getElementById('loginScreen').classList.remove('hidden');
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('mathGameScreen').classList.add('hidden');
+        document.getElementById('wordGameScreen').classList.add('hidden');
+        document.getElementById('memoryGameScreen').classList.add('hidden');
+        
+        // Clear player character
+        document.getElementById('playerCharacter').innerHTML = '';
+        
+        // Reset button state
+        document.getElementById('startButton').disabled = true;
+        document.getElementById('startButton').classList.add('opacity-50', 'cursor-not-allowed');
+    }
+    
+    function updateStars() {
+        const starsContainer = document.getElementById('starsContainer');
+        starsContainer.innerHTML = '';
+        
+        for (let i = 0; i < userData.stars; i++) {
+            const star = document.createElement('div');
+            star.innerHTML = `
+                <svg class="w-6 h-6 text-yellow-400 star-animation" fill="currentColor" viewBox="0 0 20 20">
+                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                </svg>
+            `;
+            starsContainer.appendChild(star);
+        }
+    }
+    
+    function addStar() {
+        userData.stars++;
+        updateStars();
+        
+        // Create confetti effect
+        for (let i = 0; i < 30; i++) {
+            createConfetti();
+        }
+    }
+    
+    function createConfetti() {
+        const confetti = document.createElement('div');
+        confetti.classList.add('confetti');
+        confetti.style.left = Math.random() * 100 + 'vw';
+        confetti.style.backgroundColor = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'][Math.floor(Math.random() * 6)];
+        confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+        document.body.appendChild(confetti);
+        
+        setTimeout(() => {
+            confetti.remove();
+        }, 5000);
+    }
+    
+    function backToMainMenu() {
+        document.getElementById('mathGameScreen').classList.add('hidden');
+        document.getElementById('wordGameScreen').classList.add('hidden');
+        document.getElementById('memoryGameScreen').classList.add('hidden');
+        document.getElementById('gameScreen').classList.remove('hidden');
+    }
+    
+    // Math Game Functions
+    function startMathGame() {
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('mathGameScreen').classList.remove('hidden');
+        document.getElementById('mathScore').textContent = mathScore;
+        generateMathQuestion();
+    }
+    
+    function generateMathQuestion() {
+        // Hide result and next button
+        document.getElementById('mathResult').classList.add('hidden');
+        document.getElementById('nextMathQuestion').classList.add('hidden');
+        
+        // Enable all options
+        document.querySelectorAll('.math-option').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+        });
+        
+        // Generate random numbers based on age
+        let num1, num2, operation;
+        const age = parseInt(userData.age);
+        
+        if (age <= 7) {
+            // Simple addition for younger kids
+            num1 = Math.floor(Math.random() * 10) + 1;
+            num2 = Math.floor(Math.random() * 10) + 1;
+            operation = '+';
+            currentMathAnswer = num1 + num2;
+        } else if (age <= 9) {
+            // Addition and subtraction
+            const operations = ['+', '-'];
+            operation = operations[Math.floor(Math.random() * operations.length)];
+            
+            if (operation === '+') {
+                num1 = Math.floor(Math.random() * 20) + 1;
+                num2 = Math.floor(Math.random() * 20) + 1;
+                currentMathAnswer = num1 + num2;
+            } else {
+                num1 = Math.floor(Math.random() * 20) + 10;
+                num2 = Math.floor(Math.random() * num1) + 1;
+                currentMathAnswer = num1 - num2;
+            }
+        } else {
+            // Addition, subtraction, and multiplication
+            const operations = ['+', '-', '×'];
+            operation = operations[Math.floor(Math.random() * operations.length)];
+            
+            if (operation === '+') {
+                num1 = Math.floor(Math.random() * 50) + 1;
+                num2 = Math.floor(Math.random() * 50) + 1;
+                currentMathAnswer = num1 + num2;
+            } else if (operation === '-') {
+                num1 = Math.floor(Math.random() * 50) + 20;
+                num2 = Math.floor(Math.random() * num1) + 1;
+                currentMathAnswer = num1 - num2;
+            } else {
+                num1 = Math.floor(Math.random() * 10) + 1;
+                num2 = Math.floor(Math.random() * 10) + 1;
+                currentMathAnswer = num1 * num2;
+            }
         }
         
-        // Her karttan iki tane oluştur ve karıştır
-        gameState.cards = [...selectedItems, ...selectedItems]
-            .map(item => ({...item, id: Math.random()}))
-            .sort(() => 0.5 - Math.random());
+        // Set question
+        document.getElementById('mathQuestion').textContent = `${num1} ${operation} ${num2} = ?`;
         
-        // Kartları DOM'a ekle
-        gameState.cards.forEach((card, index) => {
+        // Generate options (one correct, three wrong)
+        const options = [currentMathAnswer];
+        
+        while (options.length < 4) {
+            // Generate a wrong answer that's close to the correct one
+            let wrongAnswer;
+            do {
+                wrongAnswer = currentMathAnswer + (Math.floor(Math.random() * 10) - 5);
+                // Make sure wrong answer is positive and different from existing options
+            } while (wrongAnswer <= 0 || options.includes(wrongAnswer));
+            
+            options.push(wrongAnswer);
+        }
+        
+        // Shuffle options
+        for (let i = options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [options[i], options[j]] = [options[j], options[i]];
+        }
+        
+        // Set options
+        const optionButtons = document.querySelectorAll('.math-option');
+        for (let i = 0; i < optionButtons.length; i++) {
+            optionButtons[i].textContent = options[i];
+        }
+    }
+    
+    function checkMathAnswer(button) {
+        const selectedAnswer = parseInt(button.textContent);
+        const resultDiv = document.getElementById('mathResult');
+        
+        // Disable all options
+        document.querySelectorAll('.math-option').forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+        });
+        
+        if (selectedAnswer === currentMathAnswer) {
+            // Correct answer
+            resultDiv.textContent = 'Doğru! Harika iş!';
+            resultDiv.classList.remove('bg-red-100', 'text-red-800');
+            resultDiv.classList.add('bg-green-100', 'text-green-800');
+            mathScore++;
+            document.getElementById('mathScore').textContent = mathScore;
+            
+            // Add star for every 3 correct answers
+            if (mathScore % 3 === 0) {
+                addStar();
+            }
+        } else {
+            // Wrong answer
+            resultDiv.textContent = `Yanlış. Doğru cevap: ${currentMathAnswer}`;
+            resultDiv.classList.remove('bg-green-100', 'text-green-800');
+            resultDiv.classList.add('bg-red-100', 'text-red-800');
+        }
+        
+        resultDiv.classList.remove('hidden');
+        document.getElementById('nextMathQuestion').classList.remove('hidden');
+    }
+    
+    // Word Game Functions
+    function startWordGame() {
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('wordGameScreen').classList.remove('hidden');
+        document.getElementById('wordScore').textContent = wordScore;
+        generateWordQuestion();
+    }
+    
+    function generateWordQuestion() {
+        // Hide result and next button
+        document.getElementById('wordResult').classList.add('hidden');
+        document.getElementById('nextWordQuestion').classList.add('hidden');
+        
+        // Enable all options
+        document.querySelectorAll('.word-option').forEach(btn => {
+            btn.disabled = false;
+            btn.classList.remove('opacity-50');
+        });
+        
+        // Select a random word
+        const wordIndex = Math.floor(Math.random() * words.length);
+        const wordObj = words[wordIndex];
+        const word = wordObj.word;
+        
+        // Create puzzle by replacing letters with underscores
+        let puzzle = '';
+        for (let i = 0; i < word.length; i++) {
+            if (wordObj.missingIndexes.includes(i)) {
+                puzzle += '_ ';
+                currentWordAnswer = word[i];
+            } else {
+                puzzle += word[i] + ' ';
+            }
+        }
+        
+        currentWordPuzzle = puzzle.trim();
+        document.getElementById('wordPuzzle').textContent = currentWordPuzzle;
+        
+        // Set image based on word
+        const wordImages = {
+            'book': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjZTZmN2ZmIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik01MCw1MCBMNzAsNTAgTDcwLDE1MCBMNTAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNODAsNTAgTDEwMCw1MCBMMTAWLDE1MCBMODAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNMTEwLDUwIEwxMzAsNTAgTDEzMCwxNTAgTDExMCwxNTAgWiIgZmlsbD0iI2ZmYzEwNyIvPjxwYXRoIGQ9Ik0xNDAsNTAgTDE2MCw1MCBMMTY1LDgwIEwxNTAsMTUwIEwxNDAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48L3N2Zz4=',
+            'pencil': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cGF0aCBkPSJNNTAsNTAgTDE1MCwxNTAgTDEzMCwxNzAgTDMwLDcwIFoiIGZpbGw9IiNmZmViM2IiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTMwLDcwIEwyMCwxMDAgTDUwLDgwIFoiIGZpbGw9IiNmZjU3MjIiLz48cGF0aCBkPSJNMTUwLDE1MCBMMTY1LDEzNSBMMTQ1LDExNSBaIiBmaWxsPSIjZTBlMGUwIi8+PC9zdmc+',
+            'school': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cGF0aCBkPSJNMTAwLDMwIEwzMCw3MCBMMTAwLDExMCBMMTcwLDcwIFoiIGZpbGw9IiNlNmY3ZmYiIHN0cm9rZT0iIzIxOTZGMyIgc3Ryb2tlLXdpZHRoPSIzIi8+PHBhdGggZD0iTTUwLDgwIEw1MCwxMzAgTDEwMCwxNjAgTDE1MCwxMzAgTDE1MCw4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNMTAwLDExMCBMMTAwLDE2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjMiLz48L3N2Zz4=',
+            'apple': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjYwIiBmaWxsPSIjZmY1NzIyIi8+PHBhdGggZD0iTTEwMCw0MCBMMTAWLDY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzYjgxMzQiIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xMDUsNDUgQzEyMCw0MCAxMzAsNjAgMTIwLDY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzYjgxMzQiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg==',
+            'sun': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjUwIiBmaWxsPSIjZmZjMTA3Ii8+PHBhdGggZD0iTTEwMCwzMCBMMTAwLDEwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xMDAsMTkwIEwxMDAsMTcwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0zMCwxMDAgTDEwLDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNMTkwLDEwMCBMMTcwLDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNNTIsNTIgTDM4LDM4IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xNjIsMTYyIEwxNDgsMTQ4IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik01MiwxNDggTDM4LDE2MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNMTYyLDM4IEwxNDgsNTIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmYzEwNyIgc3Ryb2tlLXdpZHRoPSI1Ii8+PC9zdmc+',
+        };
+        
+        document.getElementById('wordImage').src = wordImages[wordObj.image];
+        
+        // Set options
+        const vowels = ['A', 'E', 'İ', 'O', 'U', 'Ö', 'Ü', 'I'];
+        const options = [currentWordAnswer];
+        
+        while (options.length < 4) {
+            const randomVowel = vowels[Math.floor(Math.random() * vowels.length)];
+            if (!options.includes(randomVowel)) {
+                options.push(randomVowel);
+            }
+        }
+        
+        // Shuffle options
+        for (let i = options.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [options[i], options[j]] = [options[j], options[i]];
+        }
+        
+        // Set options
+        const optionButtons = document.querySelectorAll('.word-option');
+        for (let i = 0; i < optionButtons.length; i++) {
+            optionButtons[i].textContent = options[i];
+        }
+    }
+    
+    function checkWordAnswer(button) {
+        const selectedAnswer = button.textContent;
+        const resultDiv = document.getElementById('wordResult');
+        
+        // Disable all options
+        document.querySelectorAll('.word-option').forEach(btn => {
+            btn.disabled = true;
+            btn.classList.add('opacity-50');
+        });
+        
+        if (selectedAnswer === currentWordAnswer) {
+            // Correct answer
+            resultDiv.textContent = 'Doğru! Harika iş!';
+            resultDiv.classList.remove('bg-red-100', 'text-red-800');
+            resultDiv.classList.add('bg-green-100', 'text-green-800');
+            wordScore++;
+            document.getElementById('wordScore').textContent = wordScore;
+            
+            // Show completed word
+            document.getElementById('wordPuzzle').textContent = currentWordPuzzle.replace('_', currentWordAnswer);
+            
+            // Add star for every 3 correct answers
+            if (wordScore % 3 === 0) {
+                addStar();
+            }
+        } else {
+            // Wrong answer
+            resultDiv.textContent = `Yanlış. Doğru cevap: ${currentWordAnswer}`;
+            resultDiv.classList.remove('bg-green-100', 'text-green-800');
+            resultDiv.classList.add('bg-red-100', 'text-red-800');
+        }
+        
+        resultDiv.classList.remove('hidden');
+        document.getElementById('nextWordQuestion').classList.remove('hidden');
+    }
+    
+    // Memory Game Functions
+    function startMemoryGame() {
+        document.getElementById('gameScreen').classList.add('hidden');
+        document.getElementById('memoryGameScreen').classList.remove('hidden');
+        document.getElementById('memoryScore').textContent = memoryScore;
+        setupMemoryGame();
+    }
+    
+    function setupMemoryGame() {
+        // Reset game state
+        flippedCards = [];
+        matchedPairs = 0;
+        memoryLocked = false;
+        document.getElementById('memoryResult').classList.add('hidden');
+        
+        // Create pairs of cards
+        let cardPairs = [...memoryCards, ...memoryCards];
+        
+        // Shuffle cards
+        for (let i = cardPairs.length - 1; i > 0; i--) {
+            const j = Math.floor(Math.random() * (i + 1));
+            [cardPairs[i], cardPairs[j]] = [cardPairs[j], cardPairs[i]];
+        }
+        
+        // Create memory board
+        const memoryBoard = document.getElementById('memoryBoard');
+        memoryBoard.innerHTML = '';
+        
+        cardPairs.forEach((card, index) => {
             const cardElement = document.createElement('div');
-            cardElement.className = 'card aspect-square';
+            cardElement.className = 'memory-card bg-purple-100 rounded-lg shadow-md aspect-square flex items-center justify-center cursor-pointer transition-all duration-300 transform';
+            cardElement.dataset.id = card.id;
             cardElement.dataset.index = index;
             
             cardElement.innerHTML = `
-                <div class="card-inner h-full w-full">
-                    <div class="card-front">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                        </svg>
-                    </div>
-                    <div class="card-back">
-                        <span class="card-icon">${card.icon}</span>
-                    </div>
-                </div>
+                <div class="card-front hidden text-4xl">${card.emoji}</div>
+                <div class="card-back text-3xl text-purple-500">?</div>
             `;
             
-            cardElement.addEventListener('click', () => flipCard(index));
-            gameBoard.appendChild(cardElement);
+            cardElement.addEventListener('click', flipCard);
+            memoryBoard.appendChild(cardElement);
         });
     }
     
-    // Kart çevirme fonksiyonu
-    function flipCard(index) {
-        // Oyun aktif değilse, kart zaten çevrilmişse veya eşleşmişse işlem yapma
-        if (!gameState.isGameActive || 
-            gameState.flippedCards.length >= 2 || 
-            gameState.flippedCards.includes(index) ||
-            document.querySelectorAll('.card')[index].classList.contains('matched')) {
-            return;
-        }
+    function flipCard() {
+        if (memoryLocked) return;
+        if (this.classList.contains('matched')) return;
+        if (flippedCards.length === 1 && flippedCards[0].dataset.index === this.dataset.index) return;
         
-        // Kartı çevir
-        const card = document.querySelectorAll('.card')[index];
-        card.classList.add('flipped');
-        gameState.flippedCards.push(index);
+        // Show card front
+        this.querySelector('.card-front').classList.remove('hidden');
+        this.querySelector('.card-back').classList.add('hidden');
+        this.classList.add('bg-purple-200');
         
-        // İki kart çevrildiyse kontrol et
-        if (gameState.flippedCards.length === 2) {
-            const [firstIndex, secondIndex] = gameState.flippedCards;
-            const firstCard = gameState.cards[firstIndex];
-            const secondCard = gameState.cards[secondIndex];
-            
-            if (firstCard.name === secondCard.name) {
-                // Eşleşme durumu
-                setTimeout(() => {
-                    document.querySelectorAll('.card')[firstIndex].classList.add('matched', 'bg-green-100');
-                    document.querySelectorAll('.card')[secondIndex].classList.add('matched', 'bg-green-100');
-                    
-                    gameState.matchedPairs++;
-                    gameState.score += 10;
-                    document.getElementById('score-display').textContent = `Skor: ${gameState.score}`;
-                    
-                    // Süre bonusu ekle
-                    gameState.timeLeft += difficulties[gameState.difficulty].timeBonus;
-                    document.getElementById('time-display').textContent = `Süre: ${gameState.timeLeft}`;
-                    
-                    // Tüm kartlar eşleştiyse oyunu bitir
-                    if (gameState.matchedPairs === gameState.totalPairs) {
-                        endGame(true);
-                    }
-                    
-                    gameState.flippedCards = [];
-                }, 500);
-            } else {
-                // Eşleşmeme durumu
-                setTimeout(() => {
-                    document.querySelectorAll('.card')[firstIndex].classList.remove('flipped');
-                    document.querySelectorAll('.card')[secondIndex].classList.remove('flipped');
-                    gameState.flippedCards = [];
-                }, 1000);
-            }
+        flippedCards.push(this);
+        
+        if (flippedCards.length === 2) {
+            memoryLocked = true;
+            checkForMatch();
         }
     }
     
-    // Zamanlayıcı başlatma fonksiyonu
-    function startTimer() {
-        if (gameState.timer) {
-            clearInterval(gameState.timer);
-        }
+    function checkForMatch() {
+        const [card1, card2] = flippedCards;
         
-        const timerBar = document.getElementById('timer-bar');
-        const timeDisplay = document.getElementById('time-display');
-        const totalTime = difficulties[gameState.difficulty].time;
-        
-        gameState.timer = setInterval(() => {
-            gameState.timeLeft--;
-            timeDisplay.textContent = `Süre: ${gameState.timeLeft}`;
-            
-            // Zamanlayıcı çubuğunu güncelle
-            const percentage = (gameState.timeLeft / totalTime) * 100;
-            timerBar.style.width = `${percentage}%`;
-            
-            // Renk değişimi
-            if (percentage > 60) {
-                timerBar.classList.remove('bg-yellow-500', 'bg-red-500');
-                timerBar.classList.add('bg-indigo-600');
-            } else if (percentage > 30) {
-                timerBar.classList.remove('bg-indigo-600', 'bg-red-500');
-                timerBar.classList.add('bg-yellow-500');
-            } else {
-                timerBar.classList.remove('bg-indigo-600', 'bg-yellow-500');
-                timerBar.classList.add('bg-red-500');
-            }
-            
-            // Süre bittiyse oyunu bitir
-            if (gameState.timeLeft <= 0) {
-                endGame(false);
-            }
-        }, 1000);
-    }
-    
-    // Oyunu bitirme fonksiyonu
-    function endGame(isWin = false) {
-        gameState.isGameActive = false;
-        clearInterval(gameState.timer);
-        
-        // Skoru kaydet
-        scoreManager.saveScore({
-            username: gameState.username,
-            category: gameState.category,
-            difficulty: gameState.difficulty,
-            score: gameState.score,
-            timestamp: Date.now()
-        });
-        
-        // Oyun sonu modalını göster
-        document.getElementById('final-score').textContent = `Skorunuz: ${gameState.score}`;
-        
-        if (isWin) {
-            document.getElementById('game-result').textContent = 'Tebrikler! Tüm kartları eşleştirdiniz.';
-            document.getElementById('game-result').className = 'text-center mb-6 text-green-600 font-bold';
+        if (card1.dataset.id === card2.dataset.id) {
+            // Match found
+            setTimeout(() => {
+                card1.classList.add('matched', 'bg-green-200');
+                card2.classList.add('matched', 'bg-green-200');
+                card1.classList.remove('bg-purple-200');
+                card2.classList.remove('bg-purple-200');
+                
+                flippedCards = [];
+                memoryLocked = false;
+                
+                matchedPairs++;
+                memoryScore++;
+                document.getElementById('memoryScore').textContent = memoryScore;
+                
+                // Add star for every 4 matches
+                if (memoryScore % 4 === 0) {
+                    addStar();
+                }
+                
+                // Check if game is complete
+                if (matchedPairs === memoryCards.length) {
+                    const resultDiv = document.getElementById('memoryResult');
+                    resultDiv.textContent = 'Tebrikler! Tüm eşleşmeleri buldun!';
+                    resultDiv.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+                    resultDiv.classList.add('bg-green-100', 'text-green-800');
+                }
+            }, 500);
         } else {
-            document.getElementById('game-result').textContent = 'Süre doldu! Tekrar deneyebilirsiniz.';
-            document.getElementById('game-result').className = 'text-center mb-6 text-red-600 font-bold';
+            // No match
+            setTimeout(() => {
+                card1.querySelector('.card-front').classList.add('hidden');
+                card1.querySelector('.card-back').classList.remove('hidden');
+                card2.querySelector('.card-front').classList.add('hidden');
+                card2.querySelector('.card-back').classList.remove('hidden');
+                card1.classList.remove('bg-purple-200');
+                card2.classList.remove('bg-purple-200');
+                
+                flippedCards = [];
+                memoryLocked = false;
+            }, 1000);
         }
-        
-        gameOverModal.classList.remove('hidden');
     }
-    
-    // Sayfa yüklendiğinde ilk zorluk seviyesini seç
-    document.querySelector('.difficulty-btn[data-difficulty="easy"]').classList.add('ring-4', 'ring-indigo-300');
 </script>
 </html>
