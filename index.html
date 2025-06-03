@@ -65,6 +65,9 @@
         }
     }
 </style>
+</head>
+<body>
+    <div id="loginScreen">
         <div class="bg-white rounded-2xl shadow-xl p-8 w-full max-w-md">
             <h2 class="text-2xl font-bold text-center text-indigo-700 mb-6">Giriş Yap</h2>
             
@@ -317,554 +320,554 @@
             </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Global variables
-    let userData = {
-        username: '',
-        age: '',
-        character: '',
-        stars: 0
-    };
-    
-    let selectedCharacter = null;
-    
-    // Math game variables
-    let mathScore = 0;
-    let currentMathAnswer = 0;
-    
-    // Word game variables
-    let wordScore = 0;
-    let currentWordAnswer = '';
-    let currentWordPuzzle = '';
-    
-    // Memory game variables
-    let memoryScore = 0;
-    let flippedCards = [];
-    let matchedPairs = 0;
-    let memoryLocked = false;
-    
-    // Words for the word game
-    const words = [
-        { word: 'KİTAP', image: 'book', missingIndexes: [1, 3] },
-        { word: 'KALEM', image: 'pencil', missingIndexes: [1, 3] },
-        { word: 'OKUL', image: 'school', missingIndexes: [0, 2] },
-        { word: 'ELMA', image: 'apple', missingIndexes: [1, 3] },
-        { word: 'GÜNEŞ', image: 'sun', missingIndexes: [1, 3] }
-    ];
-    
-    // Memory game cards
-    const memoryCards = [
-        { id: 1, emoji: '🍎', name: 'apple' },
-        { id: 2, emoji: '🍌', name: 'banana' },
-        { id: 3, emoji: '🍓', name: 'strawberry' },
-        { id: 4, emoji: '🍊', name: 'orange' },
-        { id: 5, emoji: '🍇', name: 'grapes' },
-        { id: 6, emoji: '🍉', name: 'watermelon' },
-        { id: 7, emoji: '🥝', name: 'kiwi' },
-        { id: 8, emoji: '🍍', name: 'pineapple' }
-    ];
-    
-    // Initialize the app
-    document.addEventListener('DOMContentLoaded', function() {
-        // Character selection
-        document.querySelectorAll('.character').forEach(char => {
-            char.addEventListener('click', function() {
-                document.querySelectorAll('.character').forEach(c => {
-                    c.classList.remove('bg-indigo-100');
-                });
-                this.classList.add('bg-indigo-100');
-                selectedCharacter = this.dataset.character;
-                checkLoginForm();
-            });
-        });
-        
-        // Input validation
-        document.getElementById('username').addEventListener('input', checkLoginForm);
-        document.getElementById('age').addEventListener('change', checkLoginForm);
-        
-        // Start button
-        document.getElementById('startButton').addEventListener('click', startGame);
-        
-        // Logout button
-        document.getElementById('logoutButton').addEventListener('click', logout);
-        
-        // Next question buttons
-        document.getElementById('nextMathQuestion').addEventListener('click', generateMathQuestion);
-        document.getElementById('nextWordQuestion').addEventListener('click', generateWordQuestion);
-        document.getElementById('resetMemoryGame').addEventListener('click', setupMemoryGame);
-    });
-    
-    function selectCharacter(character) {
-        selectedCharacter = character;
-        document.querySelectorAll('.character').forEach(c => {
-            c.classList.remove('bg-indigo-100');
-        });
-        document.querySelector(`[data-character="${character}"]`).classList.add('bg-indigo-100');
-        checkLoginForm();
-    }
-    
-    function checkLoginForm() {
-        const username = document.getElementById('username').value.trim();
-        const age = document.getElementById('age').value;
-        const startButton = document.getElementById('startButton');
-        
-        if (username && age && selectedCharacter) {
-            startButton.disabled = false;
-            startButton.classList.remove('opacity-50', 'cursor-not-allowed');
-        } else {
-            startButton.disabled = true;
-            startButton.classList.add('opacity-50', 'cursor-not-allowed');
-        }
-    }
-    
-    function startGame() {
-        // Save user data
-        userData.username = document.getElementById('username').value.trim();
-        userData.age = document.getElementById('age').value;
-        userData.character = selectedCharacter;
-        
-        // Hide login screen and show game screen
-        document.getElementById('loginScreen').classList.add('hidden');
-        document.getElementById('gameScreen').classList.remove('hidden');
-        
-        // Update welcome message
-        document.getElementById('welcomeMessage').textContent = `Merhaba, ${userData.username}!`;
-        
-        // Set character icon
-        const characterSVG = document.querySelector(`[data-character="${userData.character}"]`).querySelector('svg').cloneNode(true);
-        characterSVG.setAttribute('class', 'w-12 h-12');
-        document.getElementById('playerCharacter').appendChild(characterSVG);
-        
-        // Initialize stars
-        updateStars();
-    }
-    
-    function logout() {
-        // Reset user data
-        userData = {
+    <script>
+        // Global variables
+        let userData = {
             username: '',
             age: '',
             character: '',
             stars: 0
         };
         
-        // Reset game scores
-        mathScore = 0;
-        wordScore = 0;
-        memoryScore = 0;
+        let selectedCharacter = null;
         
-        // Clear form
-        document.getElementById('username').value = '';
-        document.getElementById('age').value = '';
-        selectedCharacter = null;
-        document.querySelectorAll('.character').forEach(c => {
-            c.classList.remove('bg-indigo-100');
-        });
+        // Math game variables
+        let mathScore = 0;
+        let currentMathAnswer = 0;
         
-        // Show login screen and hide all game screens
-        document.getElementById('loginScreen').classList.remove('hidden');
-        document.getElementById('gameScreen').classList.add('hidden');
-        document.getElementById('mathGameScreen').classList.add('hidden');
-        document.getElementById('wordGameScreen').classList.add('hidden');
-        document.getElementById('memoryGameScreen').classList.add('hidden');
+        // Word game variables
+        let wordScore = 0;
+        let currentWordAnswer = '';
+        let currentWordPuzzle = '';
         
-        // Clear player character
-        document.getElementById('playerCharacter').innerHTML = '';
+        // Memory game variables
+        let memoryScore = 0;
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let memoryLocked = false;
         
-        // Reset button state
-        document.getElementById('startButton').disabled = true;
-        document.getElementById('startButton').classList.add('opacity-50', 'cursor-not-allowed');
-    }
-    
-    function updateStars() {
-        const starsContainer = document.getElementById('starsContainer');
-        starsContainer.innerHTML = '';
+        // Words for the word game
+        const words = [
+            { word: 'KİTAP', image: 'book', missingIndexes: [1, 3] },
+            { word: 'KALEM', image: 'pencil', missingIndexes: [1, 3] },
+            { word: 'OKUL', image: 'school', missingIndexes: [0, 2] },
+            { word: 'ELMA', image: 'apple', missingIndexes: [1, 3] },
+            { word: 'GÜNEŞ', image: 'sun', missingIndexes: [1, 3] }
+        ];
         
-        for (let i = 0; i < userData.stars; i++) {
-            const star = document.createElement('div');
-            star.innerHTML = `
-                <svg class="w-6 h-6 text-yellow-400 star-animation" fill="currentColor" viewBox="0 0 20 20">
-                    <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
-                </svg>
-            `;
-            starsContainer.appendChild(star);
-        }
-    }
-    
-    function addStar() {
-        userData.stars++;
-        updateStars();
+        // Memory game cards
+        const memoryCards = [
+            { id: 1, emoji: '🍎', name: 'apple' },
+            { id: 2, emoji: '🍌', name: 'banana' },
+            { id: 3, emoji: '🍓', name: 'strawberry' },
+            { id: 4, emoji: '🍊', name: 'orange' },
+            { id: 5, emoji: '🍇', name: 'grapes' },
+            { id: 6, emoji: '🍉', name: 'watermelon' },
+            { id: 7, emoji: '🥝', name: 'kiwi' },
+            { id: 8, emoji: '🍍', name: 'pineapple' }
+        ];
         
-        // Create confetti effect
-        for (let i = 0; i < 30; i++) {
-            createConfetti();
-        }
-    }
-    
-    function createConfetti() {
-        const confetti = document.createElement('div');
-        confetti.classList.add('confetti');
-        confetti.style.left = Math.random() * 100 + 'vw';
-        confetti.style.backgroundColor = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'][Math.floor(Math.random() * 6)];
-        confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
-        document.body.appendChild(confetti);
-        
-        setTimeout(() => {
-            confetti.remove();
-        }, 5000);
-    }
-    
-    function backToMainMenu() {
-        document.getElementById('mathGameScreen').classList.add('hidden');
-        document.getElementById('wordGameScreen').classList.add('hidden');
-        document.getElementById('memoryGameScreen').classList.add('hidden');
-        document.getElementById('gameScreen').classList.remove('hidden');
-    }
-    
-    // Math Game Functions
-    function startMathGame() {
-        document.getElementById('gameScreen').classList.add('hidden');
-        document.getElementById('mathGameScreen').classList.remove('hidden');
-        document.getElementById('mathScore').textContent = mathScore;
-        generateMathQuestion();
-    }
-    
-    function generateMathQuestion() {
-        // Hide result and next button
-        document.getElementById('mathResult').classList.add('hidden');
-        document.getElementById('nextMathQuestion').classList.add('hidden');
-        
-        // Enable all options
-        document.querySelectorAll('.math-option').forEach(btn => {
-            btn.disabled = false;
-            btn.classList.remove('opacity-50');
-        });
-        
-        // Generate random numbers based on age
-        let num1, num2, operation;
-        const age = parseInt(userData.age);
-        
-        if (age <= 7) {
-            // Simple addition for younger kids
-            num1 = Math.floor(Math.random() * 10) + 1;
-            num2 = Math.floor(Math.random() * 10) + 1;
-            operation = '+';
-            currentMathAnswer = num1 + num2;
-        } else if (age <= 9) {
-            // Addition and subtraction
-            const operations = ['+', '-'];
-            operation = operations[Math.floor(Math.random() * operations.length)];
+        // Initialize the app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Character selection
+            document.querySelectorAll('.character').forEach(char => {
+                char.addEventListener('click', function() {
+                    document.querySelectorAll('.character').forEach(c => {
+                        c.classList.remove('bg-indigo-100');
+                    });
+                    this.classList.add('bg-indigo-100');
+                    selectedCharacter = this.dataset.character;
+                    checkLoginForm();
+                });
+            });
             
-            if (operation === '+') {
-                num1 = Math.floor(Math.random() * 20) + 1;
-                num2 = Math.floor(Math.random() * 20) + 1;
-                currentMathAnswer = num1 + num2;
+            // Input validation
+            document.getElementById('username').addEventListener('input', checkLoginForm);
+            document.getElementById('age').addEventListener('change', checkLoginForm);
+            
+            // Start button
+            document.getElementById('startButton').addEventListener('click', startGame);
+            
+            // Logout button
+            document.getElementById('logoutButton').addEventListener('click', logout);
+            
+            // Next question buttons
+            document.getElementById('nextMathQuestion').addEventListener('click', generateMathQuestion);
+            document.getElementById('nextWordQuestion').addEventListener('click', generateWordQuestion);
+            document.getElementById('resetMemoryGame').addEventListener('click', setupMemoryGame);
+        });
+        
+        function selectCharacter(character) {
+            selectedCharacter = character;
+            document.querySelectorAll('.character').forEach(c => {
+                c.classList.remove('bg-indigo-100');
+            });
+            document.querySelector(`[data-character="${character}"]`).classList.add('bg-indigo-100');
+            checkLoginForm();
+        }
+        
+        function checkLoginForm() {
+            const username = document.getElementById('username').value.trim();
+            const age = document.getElementById('age').value;
+            const startButton = document.getElementById('startButton');
+            
+            if (username && age && selectedCharacter) {
+                startButton.disabled = false;
+                startButton.classList.remove('opacity-50', 'cursor-not-allowed');
             } else {
-                num1 = Math.floor(Math.random() * 20) + 10;
-                num2 = Math.floor(Math.random() * num1) + 1;
-                currentMathAnswer = num1 - num2;
+                startButton.disabled = true;
+                startButton.classList.add('opacity-50', 'cursor-not-allowed');
             }
-        } else {
-            // Addition, subtraction, and multiplication
-            const operations = ['+', '-', '×'];
-            operation = operations[Math.floor(Math.random() * operations.length)];
+        }
+        
+        function startGame() {
+            // Save user data
+            userData.username = document.getElementById('username').value.trim();
+            userData.age = document.getElementById('age').value;
+            userData.character = selectedCharacter;
             
-            if (operation === '+') {
-                num1 = Math.floor(Math.random() * 50) + 1;
-                num2 = Math.floor(Math.random() * 50) + 1;
-                currentMathAnswer = num1 + num2;
-            } else if (operation === '-') {
-                num1 = Math.floor(Math.random() * 50) + 20;
-                num2 = Math.floor(Math.random() * num1) + 1;
-                currentMathAnswer = num1 - num2;
-            } else {
+            // Hide login screen and show game screen
+            document.getElementById('loginScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+            
+            // Update welcome message
+            document.getElementById('welcomeMessage').textContent = `Merhaba, ${userData.username}!`;
+            
+            // Set character icon
+            const characterSVG = document.querySelector(`[data-character="${userData.character}"]`).querySelector('svg').cloneNode(true);
+            characterSVG.setAttribute('class', 'w-12 h-12');
+            document.getElementById('playerCharacter').appendChild(characterSVG);
+            
+            // Initialize stars
+            updateStars();
+        }
+        
+        function logout() {
+            // Reset user data
+            userData = {
+                username: '',
+                age: '',
+                character: '',
+                stars: 0
+            };
+            
+            // Reset game scores
+            mathScore = 0;
+            wordScore = 0;
+            memoryScore = 0;
+            
+            // Clear form
+            document.getElementById('username').value = '';
+            document.getElementById('age').value = '';
+            selectedCharacter = null;
+            document.querySelectorAll('.character').forEach(c => {
+                c.classList.remove('bg-indigo-100');
+            });
+            
+            // Show login screen and hide all game screens
+            document.getElementById('loginScreen').classList.remove('hidden');
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('mathGameScreen').classList.add('hidden');
+            document.getElementById('wordGameScreen').classList.add('hidden');
+            document.getElementById('memoryGameScreen').classList.add('hidden');
+            
+            // Clear player character
+            document.getElementById('playerCharacter').innerHTML = '';
+            
+            // Reset button state
+            document.getElementById('startButton').disabled = true;
+            document.getElementById('startButton').classList.add('opacity-50', 'cursor-not-allowed');
+        }
+        
+        function updateStars() {
+            const starsContainer = document.getElementById('starsContainer');
+            starsContainer.innerHTML = '';
+            
+            for (let i = 0; i < userData.stars; i++) {
+                const star = document.createElement('div');
+                star.innerHTML = `
+                    <svg class="w-6 h-6 text-yellow-400 star-animation" fill="currentColor" viewBox="0 0 20 20">
+                        <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path>
+                    </svg>
+                `;
+                starsContainer.appendChild(star);
+            }
+        }
+        
+        function addStar() {
+            userData.stars++;
+            updateStars();
+            
+            // Create confetti effect
+            for (let i = 0; i < 30; i++) {
+                createConfetti();
+            }
+        }
+        
+        function createConfetti() {
+            const confetti = document.createElement('div');
+            confetti.classList.add('confetti');
+            confetti.style.left = Math.random() * 100 + 'vw';
+            confetti.style.backgroundColor = ['#ff0000', '#00ff00', '#0000ff', '#ffff00', '#ff00ff', '#00ffff'][Math.floor(Math.random() * 6)];
+            confetti.style.animationDuration = (Math.random() * 3 + 2) + 's';
+            document.body.appendChild(confetti);
+            
+            setTimeout(() => {
+                confetti.remove();
+            }, 5000);
+        }
+        
+        function backToMainMenu() {
+            document.getElementById('mathGameScreen').classList.add('hidden');
+            document.getElementById('wordGameScreen').classList.add('hidden');
+            document.getElementById('memoryGameScreen').classList.add('hidden');
+            document.getElementById('gameScreen').classList.remove('hidden');
+        }
+        
+        // Math Game Functions
+        function startMathGame() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('mathGameScreen').classList.remove('hidden');
+            document.getElementById('mathScore').textContent = mathScore;
+            generateMathQuestion();
+        }
+        
+        function generateMathQuestion() {
+            // Hide result and next button
+            document.getElementById('mathResult').classList.add('hidden');
+            document.getElementById('nextMathQuestion').classList.add('hidden');
+            
+            // Enable all options
+            document.querySelectorAll('.math-option').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            });
+            
+            // Generate random numbers based on age
+            let num1, num2, operation;
+            const age = parseInt(userData.age);
+            
+            if (age <= 7) {
+                // Simple addition for younger kids
                 num1 = Math.floor(Math.random() * 10) + 1;
                 num2 = Math.floor(Math.random() * 10) + 1;
-                currentMathAnswer = num1 * num2;
-            }
-        }
-        
-        // Set question
-        document.getElementById('mathQuestion').textContent = `${num1} ${operation} ${num2} = ?`;
-        
-        // Generate options (one correct, three wrong)
-        const options = [currentMathAnswer];
-        
-        while (options.length < 4) {
-            // Generate a wrong answer that's close to the correct one
-            let wrongAnswer;
-            do {
-                wrongAnswer = currentMathAnswer + (Math.floor(Math.random() * 10) - 5);
-                // Make sure wrong answer is positive and different from existing options
-            } while (wrongAnswer <= 0 || options.includes(wrongAnswer));
-            
-            options.push(wrongAnswer);
-        }
-        
-        // Shuffle options
-        for (let i = options.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [options[i], options[j]] = [options[j], options[i]];
-        }
-        
-        // Set options
-        const optionButtons = document.querySelectorAll('.math-option');
-        for (let i = 0; i < optionButtons.length; i++) {
-            optionButtons[i].textContent = options[i];
-        }
-    }
-    
-    function checkMathAnswer(button) {
-        const selectedAnswer = parseInt(button.textContent);
-        const resultDiv = document.getElementById('mathResult');
-        
-        // Disable all options
-        document.querySelectorAll('.math-option').forEach(btn => {
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-        });
-        
-        if (selectedAnswer === currentMathAnswer) {
-            // Correct answer
-            resultDiv.textContent = 'Doğru! Harika iş!';
-            resultDiv.classList.remove('bg-red-100', 'text-red-800');
-            resultDiv.classList.add('bg-green-100', 'text-green-800');
-            mathScore++;
-            document.getElementById('mathScore').textContent = mathScore;
-            
-            // Add star for every 3 correct answers
-            if (mathScore % 3 === 0) {
-                addStar();
-            }
-        } else {
-            // Wrong answer
-            resultDiv.textContent = `Yanlış. Doğru cevap: ${currentMathAnswer}`;
-            resultDiv.classList.remove('bg-green-100', 'text-green-800');
-            resultDiv.classList.add('bg-red-100', 'text-red-800');
-        }
-        
-        resultDiv.classList.remove('hidden');
-        document.getElementById('nextMathQuestion').classList.remove('hidden');
-    }
-    
-    // Word Game Functions
-    function startWordGame() {
-        document.getElementById('gameScreen').classList.add('hidden');
-        document.getElementById('wordGameScreen').classList.remove('hidden');
-        document.getElementById('wordScore').textContent = wordScore;
-        generateWordQuestion();
-    }
-    
-    function generateWordQuestion() {
-        // Hide result and next button
-        document.getElementById('wordResult').classList.add('hidden');
-        document.getElementById('nextWordQuestion').classList.add('hidden');
-        
-        // Enable all options
-        document.querySelectorAll('.word-option').forEach(btn => {
-            btn.disabled = false;
-            btn.classList.remove('opacity-50');
-        });
-        
-        // Select a random word
-        const wordIndex = Math.floor(Math.random() * words.length);
-        const wordObj = words[wordIndex];
-        const word = wordObj.word;
-        
-        // Create puzzle by replacing letters with underscores
-        let puzzle = '';
-        for (let i = 0; i < word.length; i++) {
-            if (wordObj.missingIndexes.includes(i)) {
-                puzzle += '_ ';
-                currentWordAnswer = word[i];
+                operation = '+';
+                currentMathAnswer = num1 + num2;
+            } else if (age <= 9) {
+                // Addition and subtraction
+                const operations = ['+', '-'];
+                operation = operations[Math.floor(Math.random() * operations.length)];
+                
+                if (operation === '+') {
+                    num1 = Math.floor(Math.random() * 20) + 1;
+                    num2 = Math.floor(Math.random() * 20) + 1;
+                    currentMathAnswer = num1 + num2;
+                } else {
+                    num1 = Math.floor(Math.random() * 20) + 10;
+                    num2 = Math.floor(Math.random() * num1) + 1;
+                    currentMathAnswer = num1 - num2;
+                }
             } else {
-                puzzle += word[i] + ' ';
+                // Addition, subtraction, and multiplication
+                const operations = ['+', '-', '×'];
+                operation = operations[Math.floor(Math.random() * operations.length)];
+                
+                if (operation === '+') {
+                    num1 = Math.floor(Math.random() * 50) + 1;
+                    num2 = Math.floor(Math.random() * 50) + 1;
+                    currentMathAnswer = num1 + num2;
+                } else if (operation === '-') {
+                    num1 = Math.floor(Math.random() * 50) + 20;
+                    num2 = Math.floor(Math.random() * num1) + 1;
+                    currentMathAnswer = num1 - num2;
+                } else {
+                    num1 = Math.floor(Math.random() * 10) + 1;
+                    num2 = Math.floor(Math.random() * 10) + 1;
+                    currentMathAnswer = num1 * num2;
+                }
+            }
+            
+            // Set question
+            document.getElementById('mathQuestion').textContent = `${num1} ${operation} ${num2} = ?`;
+            
+            // Generate options (one correct, three wrong)
+            const options = [currentMathAnswer];
+            
+            while (options.length < 4) {
+                // Generate a wrong answer that's close to the correct one
+                let wrongAnswer;
+                do {
+                    wrongAnswer = currentMathAnswer + (Math.floor(Math.random() * 10) - 5);
+                    // Make sure wrong answer is positive and different from existing options
+                } while (wrongAnswer <= 0 || options.includes(wrongAnswer));
+                
+                options.push(wrongAnswer);
+            }
+            
+            // Shuffle options
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            // Set options
+            const optionButtons = document.querySelectorAll('.math-option');
+            for (let i = 0; i < optionButtons.length; i++) {
+                optionButtons[i].textContent = options[i];
             }
         }
         
-        currentWordPuzzle = puzzle.trim();
-        document.getElementById('wordPuzzle').textContent = currentWordPuzzle;
-        
-        // Set image based on word
-        const wordImages = {
-            'book': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjZTZmN2ZmIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik01MCw1MCBMNzAsNTAgTDcwLDE1MCBMNTAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNODAsNTAgTDEwMCw1MCBMMTAWLDE1MCBMODAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNMTEwLDUwIEwxMzAsNTAgTDEzMCwxNTAgTDExMCwxNTAgWiIgZmlsbD0iI2ZmYzEwNyIvPjxwYXRoIGQ9Ik0xNDAsNTAgTDE2MCw1MCBMMTY1LDgwIEwxNTAsMTUwIEwxNDAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48L3N2Zz4=',
-            'pencil': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cGF0aCBkPSJNNTAsNTAgTDE1MCwxNTAgTDEzMCwxNzAgTDMwLDcwIFoiIGZpbGw9IiNmZmViM2IiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTMwLDcwIEwyMCwxMDAgTDUwLDgwIFoiIGZpbGw9IiNmZjU3MjIiLz48cGF0aCBkPSJNMTUwLDE1MCBMMTY1LDEzNSBMMTQ1LDExNSBaIiBmaWxsPSIjZTBlMGUwIi8+PC9zdmc+',
-            'school': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cGF0aCBkPSJNMTAwLDMwIEwzMCw3MCBMMTAwLDExMCBMMTcwLDcwIFoiIGZpbGw9IiNlNmY3ZmYiIHN0cm9rZT0iIzIxOTZGMyIgc3Ryb2tlLXdpZHRoPSIzIi8+PHBhdGggZD0iTTUwLDgwIEw1MCwxMzAgTDEwMCwxNjAgTDE1MCwxMzAgTDE1MCw4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNMTAwLDExMCBMMTAwLDE2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjMiLz48L3N2Zz4=',
-            'apple': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjYwIiBmaWxsPSIjZmY1NzIyIi8+PHBhdGggZD0iTTEwMCw0MCBMMTAWLDY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzYjgxMzQiIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xMDUsNDUgQzEyMCw0MCAxMzAsNjAgMTIwLDY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzYjgxMzQiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg==',
-            'sun': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjUwIiBmaWxsPSIjZmZjMTA3Ii8+PHBhdGggZD0iTTEwMCwzMCBMMTAwLDEwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xMDAsMTkwIEwxMDAsMTcwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0zMCwxMDAgTDEwLDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNMTkwLDEwMCBMMTcwLDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNNTIsNTIgTDM4LDM4IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xNjIsMTYyIEwxNDgsMTQ4IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik01MiwxNDggTDM4LDE2MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNMTYyLDM4IEwxNDgsNTIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmYzEwNyIgc3Ryb2tlLXdpZHRoPSI1Ii8+PC9zdmc+',
-        };
-        
-        document.getElementById('wordImage').src = wordImages[wordObj.image];
-        
-        // Set options
-        const vowels = ['A', 'E', 'İ', 'O', 'U', 'Ö', 'Ü', 'I'];
-        const options = [currentWordAnswer];
-        
-        while (options.length < 4) {
-            const randomVowel = vowels[Math.floor(Math.random() * vowels.length)];
-            if (!options.includes(randomVowel)) {
-                options.push(randomVowel);
-            }
-        }
-        
-        // Shuffle options
-        for (let i = options.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [options[i], options[j]] = [options[j], options[i]];
-        }
-        
-        // Set options
-        const optionButtons = document.querySelectorAll('.word-option');
-        for (let i = 0; i < optionButtons.length; i++) {
-            optionButtons[i].textContent = options[i];
-        }
-    }
-    
-    function checkWordAnswer(button) {
-        const selectedAnswer = button.textContent;
-        const resultDiv = document.getElementById('wordResult');
-        
-        // Disable all options
-        document.querySelectorAll('.word-option').forEach(btn => {
-            btn.disabled = true;
-            btn.classList.add('opacity-50');
-        });
-        
-        if (selectedAnswer === currentWordAnswer) {
-            // Correct answer
-            resultDiv.textContent = 'Doğru! Harika iş!';
-            resultDiv.classList.remove('bg-red-100', 'text-red-800');
-            resultDiv.classList.add('bg-green-100', 'text-green-800');
-            wordScore++;
-            document.getElementById('wordScore').textContent = wordScore;
+        function checkMathAnswer(button) {
+            const selectedAnswer = parseInt(button.textContent);
+            const resultDiv = document.getElementById('mathResult');
             
-            // Show completed word
-            document.getElementById('wordPuzzle').textContent = currentWordPuzzle.replace('_', currentWordAnswer);
+            // Disable all options
+            document.querySelectorAll('.math-option').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+            });
             
-            // Add star for every 3 correct answers
-            if (wordScore % 3 === 0) {
-                addStar();
-            }
-        } else {
-            // Wrong answer
-            resultDiv.textContent = `Yanlış. Doğru cevap: ${currentWordAnswer}`;
-            resultDiv.classList.remove('bg-green-100', 'text-green-800');
-            resultDiv.classList.add('bg-red-100', 'text-red-800');
-        }
-        
-        resultDiv.classList.remove('hidden');
-        document.getElementById('nextWordQuestion').classList.remove('hidden');
-    }
-    
-    // Memory Game Functions
-    function startMemoryGame() {
-        document.getElementById('gameScreen').classList.add('hidden');
-        document.getElementById('memoryGameScreen').classList.remove('hidden');
-        document.getElementById('memoryScore').textContent = memoryScore;
-        setupMemoryGame();
-    }
-    
-    function setupMemoryGame() {
-        // Reset game state
-        flippedCards = [];
-        matchedPairs = 0;
-        memoryLocked = false;
-        document.getElementById('memoryResult').classList.add('hidden');
-        
-        // Create pairs of cards
-        let cardPairs = [...memoryCards, ...memoryCards];
-        
-        // Shuffle cards
-        for (let i = cardPairs.length - 1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [cardPairs[i], cardPairs[j]] = [cardPairs[j], cardPairs[i]];
-        }
-        
-        // Create memory board
-        const memoryBoard = document.getElementById('memoryBoard');
-        memoryBoard.innerHTML = '';
-        
-        cardPairs.forEach((card, index) => {
-            const cardElement = document.createElement('div');
-            cardElement.className = 'memory-card bg-purple-100 rounded-lg shadow-md aspect-square flex items-center justify-center cursor-pointer transition-all duration-300 transform';
-            cardElement.dataset.id = card.id;
-            cardElement.dataset.index = index;
-            
-            cardElement.innerHTML = `
-                <div class="card-front hidden text-4xl">${card.emoji}</div>
-                <div class="card-back text-3xl text-purple-500">?</div>
-            `;
-            
-            cardElement.addEventListener('click', flipCard);
-            memoryBoard.appendChild(cardElement);
-        });
-    }
-    
-    function flipCard() {
-        if (memoryLocked) return;
-        if (this.classList.contains('matched')) return;
-        if (flippedCards.length === 1 && flippedCards[0].dataset.index === this.dataset.index) return;
-        
-        // Show card front
-        this.querySelector('.card-front').classList.remove('hidden');
-        this.querySelector('.card-back').classList.add('hidden');
-        this.classList.add('bg-purple-200');
-        
-        flippedCards.push(this);
-        
-        if (flippedCards.length === 2) {
-            memoryLocked = true;
-            checkForMatch();
-        }
-    }
-    
-    function checkForMatch() {
-        const [card1, card2] = flippedCards;
-        
-        if (card1.dataset.id === card2.dataset.id) {
-            // Match found
-            setTimeout(() => {
-                card1.classList.add('matched', 'bg-green-200');
-                card2.classList.add('matched', 'bg-green-200');
-                card1.classList.remove('bg-purple-200');
-                card2.classList.remove('bg-purple-200');
+            if (selectedAnswer === currentMathAnswer) {
+                // Correct answer
+                resultDiv.textContent = 'Doğru! Harika iş!';
+                resultDiv.classList.remove('bg-red-100', 'text-red-800');
+                resultDiv.classList.add('bg-green-100', 'text-green-800');
+                mathScore++;
+                document.getElementById('mathScore').textContent = mathScore;
                 
-                flippedCards = [];
-                memoryLocked = false;
-                
-                matchedPairs++;
-                memoryScore++;
-                document.getElementById('memoryScore').textContent = memoryScore;
-                
-                // Add star for every 4 matches
-                if (memoryScore % 4 === 0) {
+                // Add star for every 3 correct answers
+                if (mathScore % 3 === 0) {
                     addStar();
                 }
-                
-                // Check if game is complete
-                if (matchedPairs === memoryCards.length) {
-                    const resultDiv = document.getElementById('memoryResult');
-                    resultDiv.textContent = 'Tebrikler! Tüm eşleşmeleri buldun!';
-                    resultDiv.classList.remove('hidden', 'bg-red-100', 'text-red-800');
-                    resultDiv.classList.add('bg-green-100', 'text-green-800');
-                }
-            }, 500);
-        } else {
-            // No match
-            setTimeout(() => {
-                card1.querySelector('.card-front').classList.add('hidden');
-                card1.querySelector('.card-back').classList.remove('hidden');
-                card2.querySelector('.card-front').classList.add('hidden');
-                card2.querySelector('.card-back').classList.remove('hidden');
-                card1.classList.remove('bg-purple-200');
-                card2.classList.remove('bg-purple-200');
-                
-                flippedCards = [];
-                memoryLocked = false;
-            }, 1000);
+            } else {
+                // Wrong answer
+                resultDiv.textContent = `Yanlış. Doğru cevap: ${currentMathAnswer}`;
+                resultDiv.classList.remove('bg-green-100', 'text-green-800');
+                resultDiv.classList.add('bg-red-100', 'text-red-800');
+            }
+            
+            resultDiv.classList.remove('hidden');
+            document.getElementById('nextMathQuestion').classList.remove('hidden');
         }
-    }
-</script>
+        
+        // Word Game Functions
+        function startWordGame() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('wordGameScreen').classList.remove('hidden');
+            document.getElementById('wordScore').textContent = wordScore;
+            generateWordQuestion();
+        }
+        
+        function generateWordQuestion() {
+            // Hide result and next button
+            document.getElementById('wordResult').classList.add('hidden');
+            document.getElementById('nextWordQuestion').classList.add('hidden');
+            
+            // Enable all options
+            document.querySelectorAll('.word-option').forEach(btn => {
+                btn.disabled = false;
+                btn.classList.remove('opacity-50');
+            });
+            
+            // Select a random word
+            const wordIndex = Math.floor(Math.random() * words.length);
+            const wordObj = words[wordIndex];
+            const word = wordObj.word;
+            
+            // Create puzzle by replacing letters with underscores
+            let puzzle = '';
+            for (let i = 0; i < word.length; i++) {
+                if (wordObj.missingIndexes.includes(i)) {
+                    puzzle += '_ ';
+                    currentWordAnswer = word[i];
+                } else {
+                    puzzle += word[i] + ' ';
+                }
+            }
+            
+            currentWordPuzzle = puzzle.trim();
+            document.getElementById('wordPuzzle').textContent = currentWordPuzzle;
+            
+            // Set image based on word
+            const wordImages = {
+                'book': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cmVjdCB4PSI0MCIgeT0iNDAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTIwIiBmaWxsPSIjZTZmN2ZmIiBzdHJva2U9IiMyMTk2RjMiIHN0cm9rZS13aWR0aD0iMyIvPjxwYXRoIGQ9Ik01MCw1MCBMNzAsNTAgTDcwLDE1MCBMNTAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNODAsNTAgTDEwMCw1MCBMMTAWLDE1MCBMODAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48cGF0aCBkPSJNMTEwLDUwIEwxMzAsNTAgTDEzMCwxNTAgTDExMCwxNTAgWiIgZmlsbD0iI2ZmYzEwNyIvPjxwYXRoIGQ9Ik0xNDAsNTAgTDE2MCw1MCBMMTY1LDgwIEwxNTAsMTUwIEwxNDAsMTUwIFoiIGZpbGw9IiNmZmMxMDciLz48L3N2Zz4=',
+                'pencil': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cGF0aCBkPSJNNTAsNTAgTDE1MCwxNTAgTDEzMCwxNzAgTDMwLDcwIFoiIGZpbGw9IiNmZmViM2IiIHN0cm9rZT0iIzMzMyIgc3Ryb2tlLXdpZHRoPSIyIi8+PHBhdGggZD0iTTMwLDcwIEwyMCwxMDAgTDUwLDgwIFoiIGZpbGw9IiNmZjU3MjIiLz48cGF0aCBkPSJNMTUwLDE1MCBMMTY1LDEzNSBMMTQ1LDExNSBaIiBmaWxsPSIjZTBlMGUwIi8+PC9zdmc+',
+                'school': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48cGF0aCBkPSJNMTAwLDMwIEwzMCw3MCBMMTAwLDExMCBMMTcwLDcwIFoiIGZpbGw9IiNlNmY3ZmYiIHN0cm9rZT0iIzIxOTZGMyIgc3Ryb2tlLXdpZHRoPSIzIi8+PHBhdGggZD0iTTUwLDgwIEw1MCwxMzAgTDEwMCwxNjAgTDE1MCwxMzAgTDE1MCw4MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjMiLz48cGF0aCBkPSJNMTAwLDExMCBMMTAwLDE2MCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjMjE5NkYzIiBzdHJva2Utd2lkdGg9IjMiLz48L3N2Zz4=',
+                'apple': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjYwIiBmaWxsPSIjZmY1NzIyIi8+PHBhdGggZD0iTTEwMCw0MCBMMTAWLDY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzYjgxMzQiIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xMDUsNDUgQzEyMCw0MCAxMzAsNjAgMTIwLDY1IiBmaWxsPSJub25lIiBzdHJva2U9IiMzYjgxMzQiIHN0cm9rZS13aWR0aD0iNSIvPjwvc3ZnPg==',
+                'sun': 'data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyMDAgMjAwIj48Y2lyY2xlIGN4PSIxMDAiIGN5PSIxMDAiIHI9IjUwIiBmaWxsPSIjZmZjMTA3Ii8+PHBhdGggZD0iTTEwMCwzMCBMMTAwLDEwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xMDAsMTkwIEwxMDAsMTcwIiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0zMCwxMDAgTDEwLDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNMTkwLDEwMCBMMTcwLDEwMCIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNNTIsNTIgTDM4LDM4IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik0xNjIsMTYyIEwxNDgsMTQ4IiBmaWxsPSJub25lIiBzdHJva2U9IiNmZmMxMDciIHN0cm9rZS13aWR0aD0iNSIvPjxwYXRoIGQ9Ik01MiwxNDggTDM4LDE2MiIgZmlsbD0ibm9uZSIgc3Ryb2tlPSIjZmZjMTA3IiBzdHJva2Utd2lkdGg9IjUiLz48cGF0aCBkPSJNMTYyLDM4IEwxNDgsNTIiIGZpbGw9Im5vbmUiIHN0cm9rZT0iI2ZmYzEwNyIgc3Ryb2tlLXdpZHRoPSI1Ii8+PC9zdmc+',
+            };
+            
+            document.getElementById('wordImage').src = wordImages[wordObj.image];
+            
+            // Set options
+            const vowels = ['A', 'E', 'İ', 'O', 'U', 'Ö', 'Ü', 'I'];
+            const options = [currentWordAnswer];
+            
+            while (options.length < 4) {
+                const randomVowel = vowels[Math.floor(Math.random() * vowels.length)];
+                if (!options.includes(randomVowel)) {
+                    options.push(randomVowel);
+                }
+            }
+            
+            // Shuffle options
+            for (let i = options.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [options[i], options[j]] = [options[j], options[i]];
+            }
+            
+            // Set options
+            const optionButtons = document.querySelectorAll('.word-option');
+            for (let i = 0; i < optionButtons.length; i++) {
+                optionButtons[i].textContent = options[i];
+            }
+        }
+        
+        function checkWordAnswer(button) {
+            const selectedAnswer = button.textContent;
+            const resultDiv = document.getElementById('wordResult');
+            
+            // Disable all options
+            document.querySelectorAll('.word-option').forEach(btn => {
+                btn.disabled = true;
+                btn.classList.add('opacity-50');
+            });
+            
+            if (selectedAnswer === currentWordAnswer) {
+                // Correct answer
+                resultDiv.textContent = 'Doğru! Harika iş!';
+                resultDiv.classList.remove('bg-red-100', 'text-red-800');
+                resultDiv.classList.add('bg-green-100', 'text-green-800');
+                wordScore++;
+                document.getElementById('wordScore').textContent = wordScore;
+                
+                // Show completed word
+                document.getElementById('wordPuzzle').textContent = currentWordPuzzle.replace('_', currentWordAnswer);
+                
+                // Add star for every 3 correct answers
+                if (wordScore % 3 === 0) {
+                    addStar();
+                }
+            } else {
+                // Wrong answer
+                resultDiv.textContent = `Yanlış. Doğru cevap: ${currentWordAnswer}`;
+                resultDiv.classList.remove('bg-green-100', 'text-green-800');
+                resultDiv.classList.add('bg-red-100', 'text-red-800');
+            }
+            
+            resultDiv.classList.remove('hidden');
+            document.getElementById('nextWordQuestion').classList.remove('hidden');
+        }
+        
+        // Memory Game Functions
+        function startMemoryGame() {
+            document.getElementById('gameScreen').classList.add('hidden');
+            document.getElementById('memoryGameScreen').classList.remove('hidden');
+            document.getElementById('memoryScore').textContent = memoryScore;
+            setupMemoryGame();
+        }
+        
+        function setupMemoryGame() {
+            // Reset game state
+            flippedCards = [];
+            matchedPairs = 0;
+            memoryLocked = false;
+            document.getElementById('memoryResult').classList.add('hidden');
+            
+            // Create pairs of cards
+            let cardPairs = [...memoryCards, ...memoryCards];
+            
+            // Shuffle cards
+            for (let i = cardPairs.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cardPairs[i], cardPairs[j]] = [cardPairs[j], cardPairs[i]];
+            }
+            
+            // Create memory board
+            const memoryBoard = document.getElementById('memoryBoard');
+            memoryBoard.innerHTML = '';
+            
+            cardPairs.forEach((card, index) => {
+                const cardElement = document.createElement('div');
+                cardElement.className = 'memory-card bg-purple-100 rounded-lg shadow-md aspect-square flex items-center justify-center cursor-pointer transition-all duration-300 transform';
+                cardElement.dataset.id = card.id;
+                cardElement.dataset.index = index;
+                
+                cardElement.innerHTML = `
+                    <div class="card-front hidden text-4xl">${card.emoji}</div>
+                    <div class="card-back text-3xl text-purple-500">?</div>
+                `;
+                
+                cardElement.addEventListener('click', flipCard);
+                memoryBoard.appendChild(cardElement);
+            });
+        }
+        
+        function flipCard() {
+            if (memoryLocked) return;
+            if (this.classList.contains('matched')) return;
+            if (flippedCards.length === 1 && flippedCards[0].dataset.index === this.dataset.index) return;
+            
+            // Show card front
+            this.querySelector('.card-front').classList.remove('hidden');
+            this.querySelector('.card-back').classList.add('hidden');
+            this.classList.add('bg-purple-200');
+            
+            flippedCards.push(this);
+            
+            if (flippedCards.length === 2) {
+                memoryLocked = true;
+                checkForMatch();
+            }
+        }
+        
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+            
+            if (card1.dataset.id === card2.dataset.id) {
+                // Match found
+                setTimeout(() => {
+                    card1.classList.add('matched', 'bg-green-200');
+                    card2.classList.add('matched', 'bg-green-200');
+                    card1.classList.remove('bg-purple-200');
+                    card2.classList.remove('bg-purple-200');
+                    
+                    flippedCards = [];
+                    memoryLocked = false;
+                    
+                    matchedPairs++;
+                    memoryScore++;
+                    document.getElementById('memoryScore').textContent = memoryScore;
+                    
+                    // Add star for every 4 matches
+                    if (memoryScore % 4 === 0) {
+                        addStar();
+                    }
+                    
+                    // Check if game is complete
+                    if (matchedPairs === memoryCards.length) {
+                        const resultDiv = document.getElementById('memoryResult');
+                        resultDiv.textContent = 'Tebrikler! Tüm eşleşmeleri buldun!';
+                        resultDiv.classList.remove('hidden', 'bg-red-100', 'text-red-800');
+                        resultDiv.classList.add('bg-green-100', 'text-green-800');
+                    }
+                }, 500);
+            } else {
+                // No match
+                setTimeout(() => {
+                    card1.querySelector('.card-front').classList.add('hidden');
+                    card1.querySelector('.card-back').classList.remove('hidden');
+                    card2.querySelector('.card-front').classList.add('hidden');
+                    card2.querySelector('.card-back').classList.remove('hidden');
+                    card1.classList.remove('bg-purple-200');
+                    card2.classList.remove('bg-purple-200');
+                    
+                    flippedCards = [];
+                    memoryLocked = false;
+                }, 1000);
+            }
+        }
+    </script>
+</body>
 </html>
